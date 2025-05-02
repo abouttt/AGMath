@@ -1,7 +1,9 @@
 ﻿#include <iostream>
 
+#include "agmath/agmath.hpp"
+
 int main()
 {
-    std::cout << "Hello World!\n";
+    std::cout << agm::pi<float> << std::endl;
 }
 
