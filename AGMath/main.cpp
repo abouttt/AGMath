@@ -4,6 +4,6 @@
 
 int main()
 {
-    std::cout << agm::pi<float> << std::endl;
+	std::cout << agm::wrap(15,1, 10);
 }
 
