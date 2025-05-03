@@ -5,4 +5,5 @@
 #include "random.hpp"
 #include "utilities.hpp"
 #include "vector2.hpp"
+#include "vector3.hpp"
 

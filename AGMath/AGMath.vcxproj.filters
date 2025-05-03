@@ -34,5 +34,8 @@
     <ClInclude Include="include\agmath\vector2.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\agmath\vector3.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
