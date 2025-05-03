@@ -31,5 +31,8 @@
     <ClInclude Include="include\agmath\random.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\agmath\vector2.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

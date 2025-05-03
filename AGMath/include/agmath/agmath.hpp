@@ -4,4 +4,5 @@
 #include "constants.hpp"
 #include "random.hpp"
 #include "utilities.hpp"
+#include "vector2.hpp"
 

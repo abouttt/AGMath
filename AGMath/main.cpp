@@ -4,9 +4,8 @@
 
 int main()
 {
-	for (int i = 0; i < 100; i++)
-	{
-		std::cout << agm::rand_range(-100, 101) << std::endl;
-	}
+	agm::Vector2<float> v1(15.f, 2.f);
+	agm::Vector2<float> v2(45.f, 11.f);
+	std::cout << agm::Vector2<float>::angle(v1, v2) << std::endl;
 }
 
