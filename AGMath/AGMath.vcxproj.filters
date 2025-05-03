@@ -22,5 +22,11 @@
     <ClInclude Include="include\agmath\agmath.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\agmath\utilities.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\agmath\concepts.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
