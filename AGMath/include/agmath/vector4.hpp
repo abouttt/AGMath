@@ -289,19 +289,23 @@ namespace agm
 
 		inline void normalize(T tolerance = epsilon<T>) requires std::is_floating_point_v<T>
 		{
-			*this = normalized(tolerance);
+			T len_sq = length_squared();
+			if (len_sq > tolerance * tolerance)
+			{
+				T inv_len = T(1) / std::sqrt(len_sq);
+				*this *= inv_len;
+			}
+			else
+			{
+				*this = Vector4::zero;
+			}
 		}
 
 		inline Vector4 normalized(T tolerance = epsilon<T>) const requires std::is_floating_point_v<T>
 		{
-			T len_sq = x * x + y * y + z * z + w * w;
-			if (len_sq > tolerance)
-			{
-				T scale = T(1) / std::sqrt(len_sq);
-				return *this * scale;
-			}
-
-			return Vector4::zero;
+			Vector4 result = *this;
+			result.normalize(tolerance);
+			return result;
 		}
 
 		inline constexpr void set(T x, T y, T z, T w)
