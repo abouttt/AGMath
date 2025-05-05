@@ -291,6 +291,11 @@ namespace agm
 			return x == T(0) && y == T(0);
 		}
 
+		inline constexpr bool is_normalized() const
+		{
+			return (abs(T(1) - length_squared()) < T(0.01));
+		}
+
 		inline T length() const
 		{
 			return T(std::sqrt(x * x + y * y));
