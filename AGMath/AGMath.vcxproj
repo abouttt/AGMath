@@ -141,6 +141,7 @@
     <ClInclude Include="include\agmath\agmath.hpp" />
     <ClInclude Include="include\agmath\concepts.hpp" />
     <ClInclude Include="include\agmath\constants.hpp" />
+    <ClInclude Include="include\agmath\quaternion.hpp" />
     <ClInclude Include="include\agmath\random.hpp" />
     <ClInclude Include="include\agmath\utilities.hpp" />
     <ClInclude Include="include\agmath\vector2.hpp" />
