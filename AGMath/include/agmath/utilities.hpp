@@ -61,13 +61,13 @@ namespace agm
 		return (value > T(0)) - (value < T(0));
 	}
 
-	template<Floating T>
+	template<FloatingPoint T>
 	inline constexpr bool is_nearly_equal(T a, T b, T tolerance = epsilon<T>)
 	{
 		return abs(a - b) <= tolerance;
 	}
 
-	template<Floating T>
+	template<FloatingPoint T>
 	inline constexpr bool is_nearly_zero(T value, T tolerance = epsilon<T>)
 	{
 		return abs(value) <= tolerance;
@@ -124,7 +124,7 @@ namespace agm
 		return offset >= 0 ? min + offset : min + offset + range;
 	}
 
-	template<Floating T>
+	template<FloatingPoint T>
 	inline constexpr T wrap(T value, T min, T max)
 	{
 		T range = max - min;
@@ -142,7 +142,7 @@ namespace agm
 		return (value % divisor + divisor) % divisor;
 	}
 
-	template<Floating T>
+	template<FloatingPoint T>
 	inline T repeat(T value, T length)
 	{
 		if (length == T(0))
@@ -153,14 +153,14 @@ namespace agm
 		return clamp(value - std::floor(value / length) * length, T(0), length);
 	}
 
-	template<Floating T>
+	template<FloatingPoint T>
 	inline T ping_pong(T t, T length)
 	{
 		t = repeat(t, length * T(2));
 		return length - abs(t - length);
 	}
 
-	template<Floating T>
+	template<FloatingPoint T>
 	inline T delta_angle(T current, T target)
 	{
 		T delta = repeat(target - current, T(360));
@@ -172,7 +172,7 @@ namespace agm
 		return delta;
 	}
 
-	template<Floating T>
+	template<FloatingPoint T>
 	inline T normalize_angle(T angle)
 	{
 		return repeat(angle, T(360));
@@ -190,13 +190,13 @@ namespace agm
 		return T(a + (b - a) * t);
 	}
 
-	template<Floating T>
+	template<FloatingPoint T>
 	inline T lerp_angle(T a, T b, T t)
 	{
 		return a + delta_angle(a, b) * clamp01(t);
 	}
 
-	template<Floating T>
+	template<FloatingPoint T>
 	inline constexpr T inverse_lerp(T a, T b, T value)
 	{
 		if (is_nearly_equal(a, b))
@@ -207,14 +207,14 @@ namespace agm
 		return clamp01((value - a) / (b - a));
 	}
 
-	template<Floating T>
+	template<FloatingPoint T>
 	inline constexpr T remap(T value, T old_min, T old_max, T new_min, T new_max)
 	{
 		T t = inverse_lerp(old_min, old_max, value);
 		return lerp(new_min, new_max, t);
 	}
 
-	template<Floating T>
+	template<FloatingPoint T>
 	inline constexpr T move_towards(T current, T target, T max_delta)
 	{
 		if (is_nearly_equal(current, target, max_delta))
@@ -225,7 +225,7 @@ namespace agm
 		return current + sign(target - current) * max_delta;
 	}
 
-	template<Floating T>
+	template<FloatingPoint T>
 	inline T move_towards_angle(T current, T target, T max_delta)
 	{
 		T delta = delta_angle(current, target);

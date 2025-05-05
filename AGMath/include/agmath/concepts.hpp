@@ -8,7 +8,7 @@ namespace agm
 	concept Integral = std::is_integral_v<T>;
 
 	template<typename T>
-	concept Floating = std::is_floating_point_v<T>;
+	concept FloatingPoint = std::is_floating_point_v<T>;
 
 	template<typename T>
 	concept Numeric = std::is_arithmetic_v<T>;
