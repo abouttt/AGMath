@@ -7,9 +7,9 @@
 #include <string>
 #include <type_traits>
 
-#include "utilities.hpp"
 #include "concepts.hpp"
 #include "constants.hpp"
+#include "utilities.hpp"
 
 namespace agm
 {
@@ -109,11 +109,6 @@ namespace agm
 			return x * other.x + y * other.y + z * other.z + w * other.w;
 		}
 
-		inline constexpr Vector4 operator^(const Vector4& other) const
-		{
-			return Vector4(y * other.z - z * other.y, z * other.x - x * other.z, x * other.y - y * other.x, 0.f);
-		}
-
 		inline constexpr Vector4& operator+=(T scalar)
 		{
 			x += scalar;
@@ -202,11 +197,6 @@ namespace agm
 		}
 
 		// Static Member Functions
-		static inline Vector4 cross(const Vector4& a, const Vector4& b)
-		{
-			return a ^ b;
-		}
-
 		static inline T distance(const Vector4& a, const Vector4& b)
 		{
 			return (a - b).length();
@@ -262,6 +252,7 @@ namespace agm
 			return normal * dot(v, normal) / normal_len_sq;
 		}
 
+		// Member Functions
 		inline constexpr bool equals(const Vector4& other, T tolerance = loose_epsilon<T>) const requires std::is_floating_point_v<T>
 		{
 			return abs(x - other.x) <= tolerance && abs(y - other.y) <= tolerance && abs(z - other.z) <= tolerance && abs(w - other.w) <= tolerance;

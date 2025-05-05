@@ -7,9 +7,9 @@
 #include <string>
 #include <type_traits>
 
-#include "utilities.hpp"
 #include "concepts.hpp"
 #include "constants.hpp"
+#include "utilities.hpp"
 
 namespace agm
 {
