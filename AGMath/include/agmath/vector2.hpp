@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <array>
 #include <cmath>
 #include <cstddef>
@@ -64,16 +65,6 @@ namespace agm
 			return Vector2(-x, -y);
 		}
 
-		inline constexpr Vector2 operator+(T scalar) const
-		{
-			return Vector2(x + scalar, y + scalar);
-		}
-
-		inline constexpr Vector2 operator-(T scalar) const
-		{
-			return Vector2(x - scalar, y - scalar);
-		}
-
 		inline constexpr Vector2 operator*(T scalar) const
 		{
 			return Vector2(x * scalar, y * scalar);
@@ -102,30 +93,6 @@ namespace agm
 		inline constexpr Vector2 operator/(const Vector2& other) const
 		{
 			return Vector2(x / other.x, y / other.y);
-		}
-
-		inline constexpr T operator|(const Vector2& other) const
-		{
-			return x * other.x + y * other.y;
-		}
-
-		inline constexpr T operator^(const Vector2& other) const
-		{
-			return x * other.y - y * other.y;
-		}
-
-		inline constexpr Vector2& operator+=(T scalar)
-		{
-			x += scalar;
-			y += scalar;
-			return *this;
-		}
-
-		inline constexpr Vector2& operator-=(T scalar)
-		{
-			x -= scalar;
-			y -= scalar;
-			return *this;
 		}
 
 		inline constexpr Vector2& operator*=(T scalar)
@@ -194,7 +161,7 @@ namespace agm
 				return T(0);
 			}
 
-			T cos_theta = clamp(dot(from, to) / len, T(-1), T(1));
+			T cos_theta = std::clamp(dot(from, to) / len, T(-1), T(1));
 			return std::acos(cos_theta) * rad_to_deg<T>;
 		}
 
@@ -211,11 +178,6 @@ namespace agm
 			return v;
 		}
 
-		static inline constexpr T cross(const Vector2& a, const Vector2& b)
-		{
-			return a ^ b;
-		}
-
 		static inline T distance(const Vector2& a, const Vector2& b)
 		{
 			return (a - b).length();
@@ -223,28 +185,30 @@ namespace agm
 
 		static inline constexpr T dot(const Vector2& a, const Vector2& b)
 		{
-			return a | b;
+			return a.x * b.x + a.y * b.y;
 		}
 
-		static inline constexpr Vector2 lerp(const Vector2& a, const Vector2& b, T t)
+		template<Numeric U>
+		static inline constexpr Vector2 lerp(const Vector2& a, const Vector2& b, U t)
 		{
 			t = clamp01(t);
 			return Vector2(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t);
 		}
 
-		static inline constexpr Vector2 lerp_unclamped(const Vector2& a, const Vector2& b, T t)
+		template<Numeric U>
+		static inline constexpr Vector2 lerp_unclamped(const Vector2& a, const Vector2& b, U t)
 		{
 			return Vector2(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t);
 		}
 
 		static inline constexpr Vector2 max(const Vector2& a, const Vector2& b)
 		{
-			return Vector2(agm::max(a.x, b.x), agm::max(a.y, b.y));
+			return Vector2(std::max(a.x, b.x), std::max(a.y, b.y));
 		}
 
 		static inline constexpr Vector2 min(const Vector2& a, const Vector2& b)
 		{
-			return Vector2(agm::min(a.x, b.x), agm::min(a.y, b.y));
+			return Vector2(std::min(a.x, b.x), std::min(a.y, b.y));
 		}
 
 		static inline Vector2 move_towards(const Vector2& current, const Vector2& target, T max_distance_delta) requires std::is_floating_point_v<T>
@@ -278,12 +242,12 @@ namespace agm
 		// Member Functions
 		inline constexpr bool equals(const Vector2& other, T tolerance = loose_epsilon<T>) const requires std::is_floating_point_v<T>
 		{
-			return abs(x - other.x) <= tolerance && abs(y - other.y) <= tolerance;
+			return std::abs(x - other.x) <= tolerance && std::abs(y - other.y) <= tolerance;
 		}
 
 		inline constexpr bool is_nearly_zero(T tolerance = loose_epsilon<T>) const requires std::is_floating_point_v<T>
 		{
-			return abs(x) <= tolerance && abs(y) <= tolerance;
+			return std::abs(x) <= tolerance && std::abs(y) <= tolerance;
 		}
 
 		inline constexpr bool is_zero() const
@@ -291,9 +255,9 @@ namespace agm
 			return x == T(0) && y == T(0);
 		}
 
-		inline constexpr bool is_normalized() const
+		inline constexpr bool is_normalized(T tolerance = epsilon<T>) const requires std::is_floating_point_v<T>
 		{
-			return (abs(T(1) - length_squared()) < T(0.01));
+			return std::abs(T(1) - length_squared()) < tolerance;
 		}
 
 		inline T length() const
@@ -308,23 +272,21 @@ namespace agm
 
 		inline void normalize(T tolerance = epsilon<T>) requires std::is_floating_point_v<T>
 		{
-			T len_sq = length_squared();
-			if (len_sq > tolerance * tolerance)
-			{
-				T inv_len = T(1) / std::sqrt(len_sq);
-				*this *= inv_len;
-			}
-			else
-			{
-				*this = Vector2::zero;
-			}
+			*this = normalized(tolerance);
 		}
 
 		inline Vector2 normalized(T tolerance = epsilon<T>) const requires std::is_floating_point_v<T>
 		{
-			Vector2 result = *this;
-			result.normalize(tolerance);
-			return result;
+			T len_sq = length_squared();
+			if (len_sq > tolerance)
+			{
+				T inv_len = T(1) / std::sqrt(len_sq);
+				return *this * inv_len;
+			}
+			else
+			{
+				return Vector2::zero;
+			}
 		}
 
 		inline constexpr void set(T x, T y)
