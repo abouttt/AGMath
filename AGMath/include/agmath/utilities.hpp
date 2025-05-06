@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <cmath>
 
 #include "concepts.hpp"
@@ -8,45 +9,9 @@
 namespace agm
 {
 	template<Numeric T>
-	inline constexpr T abs(T value)
+	inline constexpr T clamp01(T a)
 	{
-		return value < T(0) ? -value : value;
-	}
-
-	template<typename T>
-	inline constexpr T clamp(T x, T min, T max)
-	{
-		return x < min ? min : x > max ? max : x;
-	}
-
-	template<Numeric T>
-	inline constexpr T clamp01(T value)
-	{
-		return clamp(value, T(0), T(1));
-	}
-
-	template<typename T>
-	inline constexpr T max(T a, T b)
-	{
-		return a > b ? a : b;
-	}
-
-	template<typename T>
-	inline constexpr T max3(T a, T b, T c)
-	{
-		return max(max(a, b), c);
-	}
-
-	template<typename T>
-	inline constexpr T min(T a, T b)
-	{
-		return a < b ? a : b;
-	}
-
-	template<typename T>
-	inline constexpr T min3(T a, T b, T c)
-	{
-		return min(min(a, b), c);
+		return std::clamp(a, T(0), T(1));
 	}
 
 	template<typename T>
@@ -64,13 +29,13 @@ namespace agm
 	template<FloatingPoint T>
 	inline constexpr bool is_nearly_equal(T a, T b, T tolerance = epsilon<T>)
 	{
-		return abs(a - b) <= tolerance;
+		return std::abs(a - b) <= tolerance;
 	}
 
 	template<FloatingPoint T>
 	inline constexpr bool is_nearly_zero(T value, T tolerance = epsilon<T>)
 	{
-		return abs(value) <= tolerance;
+		return std::abs(value) <= tolerance;
 	}
 
 	template<Integral T>
@@ -150,14 +115,14 @@ namespace agm
 			return T(0);
 		}
 
-		return clamp(value - std::floor(value / length) * length, T(0), length);
+		return std::clamp(value - std::floor(value / length) * length, T(0), length);
 	}
 
 	template<FloatingPoint T>
 	inline T ping_pong(T t, T length)
 	{
 		t = repeat(t, length * T(2));
-		return length - abs(t - length);
+		return length - std::abs(t - length);
 	}
 
 	template<FloatingPoint T>
