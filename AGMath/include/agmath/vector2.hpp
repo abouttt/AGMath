@@ -1,6 +1,5 @@
 #pragma once
 
-#include <algorithm>
 #include <array>
 #include <cmath>
 #include <cstddef>
@@ -243,6 +242,11 @@ namespace agm
 		inline constexpr bool equals(const Vector2& other, T tolerance = loose_epsilon<T>) const requires std::is_floating_point_v<T>
 		{
 			return abs(x - other.x) <= tolerance && abs(y - other.y) <= tolerance;
+		}
+
+		inline constexpr bool equals(const Vector2& other) const requires std::is_integral_v<T>
+		{
+			return x == other.x && y == other.y;
 		}
 
 		inline constexpr bool is_nearly_zero(T tolerance = loose_epsilon<T>) const requires std::is_floating_point_v<T>

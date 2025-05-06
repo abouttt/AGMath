@@ -1,6 +1,5 @@
 #pragma once
 
-#include <algorithm>
 #include <array>
 #include <cmath>
 #include <cstddef>
@@ -211,21 +210,20 @@ namespace agm
 			return current + delta / len * max_distance_delta;
 		}
 
-		static inline constexpr Vector4 project(const Vector4& v, const Vector4& normal) requires std::is_floating_point_v<T>
+		static inline constexpr Vector4 project(const Vector4& a, const Vector4& b) requires std::is_floating_point_v<T>
 		{
-			T normal_len_sq = dot(normal, normal);
-			if (agm::is_nearly_zero(normal_len_sq))
-			{
-				return Vector4::zero;
-			}
-
-			return normal * dot(v, normal) / normal_len_sq;
+			return b * (dot(a, b) / dot(b, b));
 		}
 
 		// Member Functions
 		inline constexpr bool equals(const Vector4& other, T tolerance = loose_epsilon<T>) const requires std::is_floating_point_v<T>
 		{
 			return abs(x - other.x) <= tolerance && abs(y - other.y) <= tolerance && abs(z - other.z) <= tolerance && abs(w - other.w) <= tolerance;
+		}
+
+		inline constexpr bool equals(const Vector4& other) const requires std::is_integral_v<T>
+		{
+			return x == other.x && y == other.y && z == other.z && w == other.w;
 		}
 
 		inline constexpr bool is_nearly_zero(T tolerance = loose_epsilon<T>) const requires std::is_floating_point_v<T>
