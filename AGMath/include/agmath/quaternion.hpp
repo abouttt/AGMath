@@ -159,7 +159,7 @@ namespace agm
 		static inline T angle(const Quaternion& a, const Quaternion& b)
 		{
 			T dot_ab = dot(a, b);
-			T clamped_dot = std::clamp(dot_ab, T(-1), T(1));
+			T clamped_dot = clamp(dot_ab, T(-1), T(1));
 			return std::acos(clamped_dot) * T(2) * rad_to_deg<T>;
 		}
 
@@ -246,7 +246,7 @@ namespace agm
 		static constexpr Quaternion inverse(const Quaternion& rotation)
 		{
 			T norm = dot(rotation, rotation);
-			if (std::abs(norm - T(1)) <= epsilon<T>)
+			if (abs(norm - T(1)) <= epsilon<T>)
 			{
 				return conjugate(rotation);
 			}
@@ -272,7 +272,7 @@ namespace agm
 			Vector3<T> r = Vector3<T>::cross(upwards, f);
 			if (r.length_squared() < epsilon<T>)
 			{
-				if (std::abs(Vector3<T>::dot(upwards, f) - T(1)) < epsilon<T>)
+				if (abs(Vector3<T>::dot(upwards, f) - T(1)) < epsilon<T>)
 				{
 					return Quaternion::identity;
 				}
@@ -311,7 +311,7 @@ namespace agm
 				return to;
 			}
 
-			T t = std::min(T(1), max_degrees_delta / angle_between);
+			T t = min(T(1), max_degrees_delta / angle_between);
 			return slerp(from, to, t);
 		}
 
@@ -325,7 +325,7 @@ namespace agm
 		{
 			T dot_ab = dot(a, b);
 			Quaternion end = (dot_ab < T(0)) ? -b : b;
-			dot_ab = std::abs(dot_ab);
+			dot_ab = abs(dot_ab);
 
 			if (dot_ab > T(0.9995))
 			{
@@ -352,7 +352,7 @@ namespace agm
 
 		inline constexpr bool is_normalized(T tolerance = epsilon<T>) const
 		{
-			return std::abs(T(1) - length_squared()) < tolerance;
+			return abs(T(1) - length_squared()) < tolerance;
 		}
 
 		inline void normalize(T tolerance = epsilon<T>)
@@ -375,7 +375,7 @@ namespace agm
 
 		inline constexpr bool equals(const Quaternion& other, T tolerance = loose_epsilon<T>) const
 		{
-			return std::abs(x - other.x) <= tolerance && std::abs(y - other.y) <= tolerance && std::abs(z - other.z) <= tolerance && std::abs(w - other.w) <= tolerance;
+			return abs(x - other.x) <= tolerance && abs(y - other.y) <= tolerance && abs(z - other.z) <= tolerance && abs(w - other.w) <= tolerance;
 		}
 
 		inline void set_from_to_rotation(const Vector3<T>& from_direction, const Vector3<T>& to_direction)
