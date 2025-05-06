@@ -171,7 +171,7 @@ namespace agm
 				return T(0);
 			}
 
-			T cos_theta = std::clamp(dot(from, to) / len, T(-1), T(1));
+			T cos_theta = clamp(dot(from, to) / len, T(-1), T(1));
 			return std::acos(cos_theta) * rad_to_deg<T>;
 		}
 
@@ -218,12 +218,12 @@ namespace agm
 
 		static inline constexpr Vector3 max(const Vector3& a, const Vector3& b)
 		{
-			return Vector3(std::max(a.x, b.x), std::max(a.y, b.y), std::max(a.z, b.z));
+			return Vector3(agm::max(a.x, b.x), agm::max(a.y, b.y), agm::max(a.z, b.z));
 		}
 
 		static inline constexpr Vector3 min(const Vector3& a, const Vector3& b)
 		{
-			return Vector3(std::min(a.x, b.x), std::min(a.y, b.y), std::min(a.z, b.z));
+			return Vector3(agm::min(a.x, b.x), agm::min(a.y, b.y), agm::min(a.z, b.z));
 		}
 
 		static inline Vector3 move_towards(const Vector3& current, const Vector3& target, T max_distance_delta) requires std::is_floating_point_v<T>
@@ -296,7 +296,7 @@ namespace agm
 			Vector3 from = a.normalized();
 			Vector3 to = b.normalized();
 
-			T dot_ab = std::clamp(dot(from, to), T(-1), T(1));
+			T dot_ab = clamp(dot(from, to), T(-1), T(1));
 			T theta = std::acos(dot_ab);
 
 			if (theta < epsilon<T>)
@@ -314,12 +314,12 @@ namespace agm
 		// Member Functions
 		inline constexpr bool equals(const Vector3& other, T tolerance = loose_epsilon<T>) const requires std::is_floating_point_v<T>
 		{
-			return std::abs(x - other.x) <= tolerance && std::abs(y - other.y) <= tolerance && std::abs(z - other.z) <= tolerance;
+			return abs(x - other.x) <= tolerance && abs(y - other.y) <= tolerance && abs(z - other.z) <= tolerance;
 		}
 
 		inline constexpr bool is_nearly_zero(T tolerance = loose_epsilon<T>) const requires std::is_floating_point_v<T>
 		{
-			return std::abs(x) <= tolerance && std::abs(y) <= tolerance && std::abs(z) <= tolerance;
+			return abs(x) <= tolerance && abs(y) <= tolerance && abs(z) <= tolerance;
 		}
 
 		inline constexpr bool is_zero() const
@@ -329,7 +329,7 @@ namespace agm
 
 		inline constexpr bool is_normalized(T tolerance = epsilon<T>) const requires std::is_floating_point_v<T>
 		{
-			return std::abs(T(1) - length_squared()) < tolerance;
+			return abs(T(1) - length_squared()) < tolerance;
 		}
 
 		inline T length() const
