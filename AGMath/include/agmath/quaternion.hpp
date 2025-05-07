@@ -1,6 +1,5 @@
 #pragma once
 
-#include <algorithm>
 #include <array>
 #include <cmath>
 #include <cstddef>
@@ -57,6 +56,11 @@ namespace agm
 		inline constexpr T& operator[](size_t index)
 		{
 			return data[index];
+		}
+
+		inline constexpr Quaternion operator-() const
+		{
+			return Quaternion(-x, -y, -z, -w);
 		}
 
 		inline constexpr Quaternion operator*(T scalar) const
@@ -135,13 +139,7 @@ namespace agm
 
 		inline constexpr Quaternion& operator*=(const Quaternion& other)
 		{
-			*this = Quaternion(
-				w * other.x + x * other.w + y * other.z - z * other.y,
-				w * other.y + y * other.w + z * other.x - x * other.z,
-				w * other.z + z * other.w + x * other.y - y * other.x,
-				w * other.w - x * other.x - y * other.y - z * other.z
-			);
-
+			*this = *this * other;
 			return *this;
 		}
 
@@ -165,14 +163,21 @@ namespace agm
 
 		static inline Quaternion angle_axis(T angle, const Vector3<T>& axis)
 		{
-			T half_angle = angle * deg_to_rad<T> *T(0.5);
+			if (axis.length_squared() < epsilon<T>)
+			{
+				return identity;
+			}
+
+			angle *= deg_to_rad<T>;
+			T half_angle = angle * T(0.5);
+			Vector3<T> norm_axis = axis.normalized();
 			T sin_half = std::sin(half_angle);
 			return Quaternion(
-				axis.x * sin_half,
-				axis.y * sin_half,
-				axis.z * sin_half,
+				norm_axis.x * sin_half,
+				norm_axis.y * sin_half,
+				norm_axis.z * sin_half,
 				std::cos(half_angle)
-			);
+			).normalized();
 		}
 
 		static inline constexpr Quaternion conjugate(const Quaternion& q)
@@ -208,7 +213,7 @@ namespace agm
 				cx * sy * cz + sx * cy * sz,
 				cx * cy * sz - sx * sy * cz,
 				cx * cy * cz + sx * sy * sz
-			);
+			).normalized();
 		}
 
 		static inline Quaternion euler(const Vector3<T>& euler)
@@ -220,11 +225,11 @@ namespace agm
 		{
 			Vector3<T> f = from_direction.normalized();
 			Vector3<T> t = to_direction.normalized();
-			T dot_ft = dot(f, t);
+			T dot_ft = Vector3<T>::dot(f, t);
 
 			if (dot_ft >= T(1) - epsilon<T>)
 			{
-				return Quaternion::identity;
+				return identity;
 			}
 
 			if (dot_ft <= T(-1) + epsilon<T>)
@@ -235,8 +240,7 @@ namespace agm
 					axis = Vector3<T>::cross(Vector3<T>::up, f);
 				}
 
-				axis.normalize();
-				return angle_axis(pi<T>, axis);
+				return angle_axis(T(180), axis.normalized());
 			}
 
 			Vector3<T> c = Vector3<T>::cross(f, t);
@@ -246,9 +250,9 @@ namespace agm
 		static constexpr Quaternion inverse(const Quaternion& rotation)
 		{
 			T norm = dot(rotation, rotation);
-			if (abs(norm - T(1)) <= epsilon<T>)
+			if (norm <= epsilon<T>)
 			{
-				return conjugate(rotation);
+				return identity;
 			}
 
 			return conjugate(rotation) / norm;
@@ -268,21 +272,19 @@ namespace agm
 
 		static inline Quaternion look_rotation(const Vector3<T>& forward, const Vector3<T>& upwards = Vector3<T>::up)
 		{
-			Vector3<T> f = forward.normalized();
-			Vector3<T> r = Vector3<T>::cross(upwards, f);
-			if (r.length_squared() < epsilon<T>)
+			if (forward.length_squared() < epsilon<T>)
 			{
-				if (abs(Vector3<T>::dot(upwards, f) - T(1)) < epsilon<T>)
-				{
-					return Quaternion::identity;
-				}
-
-				return angle_axis(pi<T>, Vector3<T>::cross(f, Vector3<T>::right).normalized());
+				return identity;
 			}
 
+			Vector3<T> f = forward.normalized();
+			Vector3<T> r = Vector3<T>::cross(upwards, f).normalized();
+			if (r.length_squared() < epsilon<T>)
+			{
+				return angle_axis(T(180), Vector3<T>::up);
+			}
 
-			r.normalize();
-			Vector3<T> u = Vector3<T>::cross(f, r);
+			Vector3<T> u = Vector3<T>::cross(f, r).normalized();
 
 			T m00 = r.x, m01 = u.x, m02 = f.x;
 			T m10 = r.y, m11 = u.y, m12 = f.y;
@@ -297,22 +299,49 @@ namespace agm
 					(m02 - m20) / s,
 					(m10 - m01) / s,
 					T(0.25) * s
-				);
+				).normalized();
 			}
-
-			return Quaternion::identity;
+			else if (m00 > m11 && m00 > m22)
+			{
+				T s = std::sqrt(T(1) + m00 - m11 - m22) * T(2);
+				return Quaternion(
+					T(0.25) * s,
+					(m10 + m01) / s,
+					(m20 + m02) / s,
+					(m21 - m12) / s
+				).normalized();
+			}
+			else if (m11 > m22)
+			{
+				T s = std::sqrt(T(1) + m11 - m00 - m22) * T(2);
+				return Quaternion(
+					(m10 + m01) / s,
+					T(0.25) * s,
+					(m21 + m12) / s,
+					(m02 - m20) / s
+				).normalized();
+			}
+			else
+			{
+				T s = std::sqrt(T(1) + m22 - m00 - m11) * T(2);
+				return Quaternion(
+					(m20 + m02) / s,
+					(m21 + m12) / s,
+					T(0.25) * s,
+					(m10 - m01) / s
+				).normalized();
+			}
 		}
 
 		static inline Quaternion rotate_towards(const Quaternion& from, const Quaternion& to, T max_degrees_delta)
 		{
 			T angle_between = angle(from, to);
-			if (angle_between == T(0))
+			if (angle_between < epsilon<T>)
 			{
 				return to;
 			}
 
-			T t = min(T(1), max_degrees_delta / angle_between);
-			return slerp(from, to, t);
+			return slerp(from, to, min(T(1), max_degrees_delta / angle_between));
 		}
 
 		static inline Quaternion slerp(const Quaternion& a, const Quaternion& b, T t)
@@ -329,12 +358,11 @@ namespace agm
 
 			if (dot_ab > T(0.9995))
 			{
-				return (a * (1 - t) + end * t).normalized();
+				return lerp_unclamped(a, end, t).normalized();
 			}
 
 			T theta_0 = std::acos(dot_ab);
 			T theta = theta_0 * t;
-
 			Quaternion q = (end - a * dot_ab).normalized();
 			return a * std::cos(theta) + q * std::sin(theta);
 		}
@@ -362,10 +390,11 @@ namespace agm
 
 		inline Quaternion normalized(T tolerance = epsilon<T>) const
 		{
-			T norm = std::sqrt(dot(*this, *this));
-			if (norm > tolerance)
+			T len_sq = length_squared();
+			if (len_sq >= tolerance)
 			{
-				return *this / norm;
+				T inv_len = T(1) / std::sqrt(len_sq);
+				return *this * inv_len;
 			}
 			else
 			{
@@ -390,23 +419,10 @@ namespace agm
 
 		inline void to_angle_axis(T& out_angle, Vector3<T>& out_axis) const
 		{
-			if (w > T(1))
-			{
-				Quaternion normed = normalized();
-				return normed.to_angle_axis(out_angle, out_axis);
-			}
-
-			out_angle = T(2) * std::acos(w) * rad_to_deg<T>;
-
-			T s = std::sqrt(T(1) - w * w);
-			if (s < epsilon<T>)
-			{
-				out_axis = Vector3<T>(x, y, z);
-			}
-			else
-			{
-				out_axis = Vector3<T>(x / s, y / s, z / s);
-			}
+			Quaternion q = is_normalized() ? *this : normalized();
+			out_angle = T(2) * std::acos(q.w) * rad_to_deg<T>;
+			T s = std::sqrt(T(1) - q.w * q.w);
+			out_axis = (s < epsilon<T>) ? Vector3<T>::forward : Vector3<T>(q.x, q.y, q.z) / s;
 		}
 
 		inline constexpr void set(T x, T y, T z, T w)

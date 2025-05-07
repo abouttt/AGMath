@@ -4,8 +4,10 @@
 
 int main()
 {
-	agm::Vector2<int> v1(15, 15);
-	agm::Vector2<int> v2(15, 15);
-	std::cout << v1.to_string();
+	agm::Quaternion<float> rotation = agm::Quaternion<float>::euler(0.f, 90.f, 0.f);
+	float angle;
+	agm::Vector3<float> axis;
+	rotation.to_angle_axis(angle, axis);
+	std::cout << angle << " " << axis.to_string() << std::endl;
 }
 
