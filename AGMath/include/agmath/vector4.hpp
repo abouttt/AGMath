@@ -236,9 +236,9 @@ namespace agm
 			return x == T(0) && y == T(0) && z == T(0) && w == T(0);
 		}
 
-		inline constexpr bool is_normalized(T tolerance = epsilon<T>) const requires std::is_floating_point_v<T>
+		inline constexpr bool is_normalized() const requires std::is_floating_point_v<T>
 		{
-			return abs(T(1) - length_squared()) < tolerance;
+			return abs(T(1) - length_squared()) < T(0.01);
 		}
 
 		inline T length() const
