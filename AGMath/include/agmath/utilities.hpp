@@ -8,7 +8,7 @@
 
 namespace agm
 {
-	template<Numeric T>
+	template<Arithmetic T>
 	inline constexpr T abs(T value)
 	{
 		return value < T(0) ? -value : value;
@@ -20,7 +20,7 @@ namespace agm
 		return x < min ? min : x > max ? max : x;
 	}
 
-	template<Numeric T>
+	template<Arithmetic T>
 	inline constexpr T clamp01(T value)
 	{
 		return clamp(value, T(0), T(1));
@@ -56,7 +56,7 @@ namespace agm
 		return x >= min_inclusive && x < max_exclusive;
 	}
 
-	template<Numeric T>
+	template<Arithmetic T>
 	inline constexpr T sign(T value)
 	{
 		return (value > T(0)) - (value < T(0));
@@ -179,13 +179,13 @@ namespace agm
 		return repeat(angle, T(360));
 	}
 
-	template<Numeric T, Numeric U>
+	template<Arithmetic T, Arithmetic U>
 	inline constexpr T lerp(T a, T b, U t)
 	{
 		return T(a + (b - a) * clamp01(t));
 	}
 
-	template<Numeric T, Numeric U>
+	template<Arithmetic T, Arithmetic U>
 	inline constexpr T lerp_unclamped(T a, T b, U t)
 	{
 		return T(a + (b - a) * t);
@@ -239,7 +239,7 @@ namespace agm
 		return move_towards(current, target, max_delta);
 	}
 
-	template<Numeric T, Numeric U>
+	template<Arithmetic T, Arithmetic U>
 	inline constexpr T smoothstep(T from, T to, U t)
 	{
 		t = clamp01(t);

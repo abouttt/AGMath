@@ -11,6 +11,6 @@ namespace agm
 	concept FloatingPoint = std::is_floating_point_v<T>;
 
 	template<typename T>
-	concept Numeric = std::is_arithmetic_v<T>;
+	concept Arithmetic = std::is_arithmetic_v<T>;
 }
 

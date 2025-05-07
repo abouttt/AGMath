@@ -13,7 +13,7 @@
 
 namespace agm
 {
-	template<Numeric T>
+	template<Arithmetic T>
 	struct Vector2
 	{
 		// Static Member Variables
@@ -187,14 +187,14 @@ namespace agm
 			return a.x * b.x + a.y * b.y;
 		}
 
-		template<Numeric U>
+		template<Arithmetic U>
 		static inline constexpr Vector2 lerp(const Vector2& a, const Vector2& b, U t)
 		{
 			t = clamp01(t);
 			return Vector2(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t);
 		}
 
-		template<Numeric U>
+		template<Arithmetic U>
 		static inline constexpr Vector2 lerp_unclamped(const Vector2& a, const Vector2& b, U t)
 		{
 			return Vector2(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t);
@@ -312,22 +312,22 @@ namespace agm
 		}
 	};
 
-	template<Numeric T>
+	template<Arithmetic T>
 	inline const Vector2<T> Vector2<T>::zero = Vector2(T(0), T(0));
 
-	template<Numeric T>
+	template<Arithmetic T>
 	inline const Vector2<T> Vector2<T>::one = Vector2(T(1), T(1));
 
-	template<Numeric T>
+	template<Arithmetic T>
 	inline const Vector2<T> Vector2<T>::up = Vector2(T(0), T(1));
 
-	template<Numeric T>
+	template<Arithmetic T>
 	inline const Vector2<T> Vector2<T>::down = Vector2(T(0), T(-1));
 
-	template<Numeric T>
+	template<Arithmetic T>
 	inline const Vector2<T> Vector2<T>::left = Vector2(T(-1), T(0));
 
-	template<Numeric T>
+	template<Arithmetic T>
 	inline const Vector2<T> Vector2<T>::right = Vector2(T(1), T(0));
 }
 

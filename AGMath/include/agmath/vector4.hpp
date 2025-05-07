@@ -13,7 +13,7 @@
 
 namespace agm
 {
-	template<Numeric T>
+	template<Arithmetic T>
 	struct Vector4
 	{
 		// Static Member Variables
@@ -174,14 +174,14 @@ namespace agm
 			return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
 		}
 
-		template<Numeric U>
+		template<Arithmetic U>
 		static inline constexpr Vector4 lerp(const Vector4& a, const Vector4& b, U t)
 		{
 			t = clamp01(t);
 			return Vector4(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t, a.z + (b.z - a.z) * t, a.w + (b.w - a.w) * t);
 		}
 
-		template<Numeric U>
+		template<Arithmetic U>
 		static inline constexpr Vector4 lerp_unclamped(const Vector4& a, const Vector4& b, U t)
 		{
 			return Vector4(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t, a.z + (b.z - a.z) * t, a.w + (b.w - a.w) * t);
@@ -291,10 +291,10 @@ namespace agm
 		}
 	};
 
-	template<Numeric T>
+	template<Arithmetic T>
 	inline const Vector4<T> Vector4<T>::zero = Vector4(T(0), T(0), T(0), T(0));
 
-	template<Numeric T>
+	template<Arithmetic T>
 	inline const Vector4<T> Vector4<T>::one = Vector4(T(1), T(1), T(1), T(1));
 }
 
