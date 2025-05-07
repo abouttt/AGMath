@@ -165,7 +165,7 @@ namespace agm
 		{
 			if (axis.length_squared() < epsilon<T>)
 			{
-				return identity;
+				return Quaternion::identity;
 			}
 
 			angle *= deg_to_rad<T>;
@@ -229,7 +229,7 @@ namespace agm
 
 			if (dot_ft >= T(1) - epsilon<T>)
 			{
-				return identity;
+				return Quaternion::identity;
 			}
 
 			if (dot_ft <= T(-1) + epsilon<T>)
@@ -252,7 +252,7 @@ namespace agm
 			T norm = dot(rotation, rotation);
 			if (norm <= epsilon<T>)
 			{
-				return identity;
+				return Quaternion::identity;
 			}
 
 			return conjugate(rotation) / norm;
@@ -274,7 +274,7 @@ namespace agm
 		{
 			if (forward.length_squared() < epsilon<T>)
 			{
-				return identity;
+				return Quaternion::identity;
 			}
 
 			Vector3<T> f = forward.normalized();
