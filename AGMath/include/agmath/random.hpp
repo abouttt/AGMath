@@ -69,8 +69,8 @@ namespace agm
 
 	inline float rand01()
 	{
-		static constexpr float inv_max = 1.f / static_cast<float>(UINT32_MAX);
-		return static_cast<float>(rand()) * inv_max;
+		constexpr float factor = 1.f / (1ULL << 23);
+		return (rand() >> 9) * factor;
 	}
 
 	inline int32_t rand_range(int32_t min_inclusive, int32_t max_exclusive)

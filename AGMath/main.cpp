@@ -4,10 +4,9 @@
 
 int main()
 {
-	agm::Quaternion<float> rotation = agm::Quaternion<float>::euler(0.f, 90.f, 0.f);
-	float angle;
-	agm::Vector3<float> axis;
-	rotation.to_angle_axis(angle, axis);
-	std::cout << angle << " " << axis.to_string() << std::endl;
+	for (int i = 0; i < 100; i++)
+	{
+		std::cout << agm::rand01() << std::endl;
+	}
 }
 
