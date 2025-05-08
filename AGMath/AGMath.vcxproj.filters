@@ -22,7 +22,7 @@
     <ClInclude Include="include\agmath\random.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\agmath\vector2.hpp">
+    <ClInclude Include="include\agmath\vector2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\agmath\vector3.hpp">

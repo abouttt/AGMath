@@ -142,7 +142,7 @@
     <ClInclude Include="include\agmath\quaternion.hpp" />
     <ClInclude Include="include\agmath\random.h" />
     <ClInclude Include="include\agmath\utilities.h" />
-    <ClInclude Include="include\agmath\vector2.hpp" />
+    <ClInclude Include="include\agmath\vector2.h" />
     <ClInclude Include="include\agmath\vector3.hpp" />
     <ClInclude Include="include\agmath\vector4.hpp" />
   </ItemGroup>
