@@ -4,9 +4,8 @@
 
 int main()
 {
-	for (int i = 0; i < 100; i++)
-	{
-		std::cout << agm::Rand01() << std::endl;
-	}
+	agm::Vector3 v(12, 45, 23);
+	v.Normalize();
+	std::cout << v.length() << std::endl;
 }
 

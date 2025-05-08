@@ -25,7 +25,7 @@
     <ClInclude Include="include\agmath\vector2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\agmath\vector3.hpp">
+    <ClInclude Include="include\agmath\vector3.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\agmath\vector4.hpp">
