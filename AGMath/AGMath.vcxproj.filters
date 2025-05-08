@@ -28,7 +28,7 @@
     <ClInclude Include="include\agmath\vector3.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\agmath\vector4.hpp">
+    <ClInclude Include="include\agmath\vector4.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\agmath\quaternion.hpp">
