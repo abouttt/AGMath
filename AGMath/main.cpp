@@ -6,7 +6,7 @@ int main()
 {
 	for (int i = 0; i < 100; i++)
 	{
-		std::cout << agm::rand01() << std::endl;
+		std::cout << agm::Rand01() << std::endl;
 	}
 }
 

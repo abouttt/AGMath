@@ -16,19 +16,10 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\agmath\constants.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\agmath\agmath.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\agmath\utilities.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\agmath\concepts.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\agmath\random.hpp">
+    <ClInclude Include="include\agmath\random.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\agmath\vector2.hpp">
@@ -41,6 +32,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\agmath\quaternion.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\agmath\utilities.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

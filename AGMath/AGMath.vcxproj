@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -139,11 +139,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\agmath\agmath.hpp" />
-    <ClInclude Include="include\agmath\concepts.hpp" />
-    <ClInclude Include="include\agmath\constants.hpp" />
     <ClInclude Include="include\agmath\quaternion.hpp" />
-    <ClInclude Include="include\agmath\random.hpp" />
-    <ClInclude Include="include\agmath\utilities.hpp" />
+    <ClInclude Include="include\agmath\random.h" />
+    <ClInclude Include="include\agmath\utilities.h" />
     <ClInclude Include="include\agmath\vector2.hpp" />
     <ClInclude Include="include\agmath\vector3.hpp" />
     <ClInclude Include="include\agmath\vector4.hpp" />
