@@ -218,9 +218,28 @@ namespace agm
 			return Vector2(-v.y, v.x);
 		}
 
+		static inline constexpr Vector2 Project(const Vector2& a, const Vector2& b)
+		{
+			float denom = Dot(b, b);
+			if (agm::IsNearlyZero(denom))
+			{
+				return Vector2::ZERO;
+			}
+
+			return b * (Dot(a, b) / denom);
+		}
+
 		static inline constexpr Vector2 Reflect(const Vector2& inDirection, const Vector2& inNormal)
 		{
 			return (-2.f * Dot(inDirection, inNormal)) * inNormal + inDirection;
+		}
+
+		static inline Vector2 Rotate(const Vector2& v, float angle)
+		{
+			float rad = angle * DEG2RAD;
+			float cosA = std::cos(rad);
+			float sinA = std::sin(rad);
+			return Vector2(v.x * cosA - v.y * sinA, v.x * sinA + v.y * cosA);
 		}
 
 		static inline float SignedAngle(const Vector2& from, const Vector2& to)
