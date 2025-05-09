@@ -185,7 +185,7 @@ namespace agm
 
 		static inline float Distance(const Vector3& a, const Vector3& b)
 		{
-			return (a - b).length();
+			return (a - b).Length();
 		}
 
 		static inline constexpr float Dot(const Vector3& a, const Vector3& b)
@@ -268,12 +268,50 @@ namespace agm
 			return (-2.f * Dot(inDirection, inNormal)) * inNormal + inDirection;
 		}
 
+		static inline Vector3 RotateAroundAxis(const Vector3& vector, const Vector3& axis, float angle)
+		{
+			Vector3 unitAxis = axis.Normalized();
+			float radians = angle * DEG2RAD;
+			float cosTheta = std::cos(radians);
+			float sinTheta = std::sin(radians);
+			return vector * cosTheta + Cross(unitAxis, vector) * sinTheta + unitAxis * Dot(unitAxis, vector) * (1.f - cosTheta);
+		}
+
+		static inline Vector3 RotateTowards(const Vector3& current, const Vector3& target, float maxRadiansDelta, float maxLengthDelta)
+		{
+			const float currentLength = current.Length();
+			const float targetLength = target.Length();
+
+			if (currentLength < EPSILON || targetLength < EPSILON)
+			{
+				return MoveTowards(current, target, maxLengthDelta);
+			}
+
+			Vector3 currentDirection = current / currentLength;
+			Vector3 targetDirection = target / targetLength;
+
+			float cosTheta = Clamp(Dot(currentDirection, targetDirection), -1.f, 1.f);
+			float angle = std::acos(cosTheta);
+
+			if (angle < EPSILON)
+			{
+				float newLength = agm::MoveTowards(currentLength, targetLength, maxLengthDelta);
+				return currentDirection * newLength;
+			}
+
+			float t = agm::Min(1.f, maxRadiansDelta / angle);
+			Vector3 newDirection = SlerpUnclamped(currentDirection, targetDirection, t);
+			float newLength = agm::MoveTowards(currentLength, targetLength, maxLengthDelta);
+
+			return newDirection * newLength;
+		}
+
 		static inline float SignedAngle(const Vector3& from, const Vector3& to, const Vector3& axis)
 		{
 			return Angle(from, to) * Sign(Dot(axis, Cross(from, to)));
 		}
 
-		static inline Vector3 slerp(const Vector3& a, const Vector3& b, float t)
+		static inline Vector3 Slerp(const Vector3& a, const Vector3& b, float t)
 		{
 			t = Clamp01(t);
 			return SlerpUnclamped(a, b, t);
@@ -281,22 +319,24 @@ namespace agm
 
 		static inline Vector3 SlerpUnclamped(const Vector3& a, const Vector3& b, float t)
 		{
-			Vector3 from = a.Normalized();
-			Vector3 to = b.Normalized();
+			float lengthA = a.Length();
+			float lengthB = b.Length();
 
-			float dotAB = Clamp(Dot(from, to), -1.f, 1.f);
-			float theta = std::acos(dotAB);
-
-			if (dotAB >= 1.f - EPSILON)
+			if (lengthA < EPSILON || lengthB < EPSILON)
 			{
-				return from;
+				return LerpUnclamped(a, b, t);
 			}
 
-			float sinTheta = std::sin(theta);
-			float scaleA = std::sin((1.f - t) * theta) / sinTheta;
-			float scaleB = std::sin(t * theta) / sinTheta;
+			Vector3 normA = a / lengthA;
+			Vector3 normB = b / lengthB;
 
-			return from * scaleA + to * scaleB;
+			float dot = Clamp(Dot(normA, normB), -1.f, 1.f);
+			float theta = std::acos(dot) * t;
+
+			Vector3 relative = (normB - normA * dot).Normalized();
+			Vector3 direction = normA * std::cos(theta) + relative * std::sin(theta);
+			float length = agm::LerpUnclamped(lengthA, lengthB, t);
+			return direction * length;
 		}
 
 		inline constexpr bool Equals(const Vector3& other, float tolerance = LOOSE_EPSILON) const
@@ -319,7 +359,7 @@ namespace agm
 			return Abs(1.f - LengthSquared()) < 0.01f;
 		}
 
-		inline float length() const
+		inline float Length() const
 		{
 			return std::sqrt(x * x + y * y + z * z);
 		}
