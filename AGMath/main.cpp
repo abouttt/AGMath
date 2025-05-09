@@ -1,11 +1,13 @@
 ﻿#include <iostream>
 
-#include "agmath/agmath.hpp"
+#include "agmath/agmath.h"
 
 int main()
 {
-	agm::Vector3 v(12, 45, 23);
-	v.Normalize();
-	std::cout << v.length() << std::endl;
+	agm::Quaternion q = agm::Quaternion::Euler(0.f, 90.f, 0.f);
+	float angle;
+	agm::Vector3 axis;
+	q.ToAngleAxis(angle, axis);
+	std::cout << angle << " " << axis.ToString() << std::endl;
 }
 

@@ -16,7 +16,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\agmath\agmath.hpp">
+    <ClInclude Include="include\agmath\agmath.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\agmath\random.h">
@@ -31,7 +31,7 @@
     <ClInclude Include="include\agmath\vector4.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\agmath\quaternion.hpp">
+    <ClInclude Include="include\agmath\quaternion.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\agmath\utilities.h">

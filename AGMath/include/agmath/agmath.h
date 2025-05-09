@@ -5,4 +5,5 @@
 #include "vector2.h"
 #include "vector3.h"
 #include "vector4.h"
+#include "quaternion.h"
 
