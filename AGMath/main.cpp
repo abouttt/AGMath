@@ -7,7 +7,7 @@ using namespace agm;
 
 int main()
 {
-	auto v = Vector2Int::ONE;
+	auto v = Vector3Int::ONE;
 	cout << v.ToString();
 }
 
