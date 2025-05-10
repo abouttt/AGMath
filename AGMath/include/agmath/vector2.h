@@ -23,8 +23,7 @@ namespace agm
 		{
 			struct
 			{
-				float x;
-				float y;
+				float x, y;
 			};
 
 			std::array<float, 2> data;

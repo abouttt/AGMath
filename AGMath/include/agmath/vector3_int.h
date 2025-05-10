@@ -27,9 +27,7 @@ namespace agm
 		{
 			struct
 			{
-				int32_t x;
-				int32_t y;
-				int32_t z;
+				int32_t x, y, z;
 			};
 
 			std::array<int32_t, 3> data;
