@@ -46,5 +46,8 @@
     <ClInclude Include="include\agmath\vector3_int.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\agmath\color.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
