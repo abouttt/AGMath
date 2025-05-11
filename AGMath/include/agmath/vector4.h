@@ -1,9 +1,9 @@
 #pragma once
 
-#include <array>
 #include <cmath>
-#include <cstddef>
+#include <cstdint>
 #include <format>
+#include <stdexcept>
 #include <string>
 
 #include "utilities.h"
@@ -12,18 +12,19 @@ namespace agm
 {
 	struct Vector4
 	{
+	public:
+
+		float x;
+		float y;
+		float z;
+		float w;
+
+	public:
+
 		static const Vector4 ZERO;
 		static const Vector4 ONE;
 
-		union
-		{
-			struct
-			{
-				float x, y, z, w;
-			};
-
-			std::array<float, 4> data;
-		};
+	public:
 
 		constexpr Vector4()
 			: x(0.f)
@@ -41,52 +42,68 @@ namespace agm
 		{
 		}
 
-		inline constexpr float operator[](size_t index) const
+	public:
+
+		constexpr float operator[](int32_t index) const
 		{
-			return data[index];
+			switch (index)
+			{
+			case 0: return x;
+			case 1: return y;
+			case 2: return z;
+			case 3: return w;
+			default: throw std::out_of_range("Invalid Vector4 index!");
+			}
 		}
 
-		inline constexpr float& operator[](size_t index)
+		constexpr float& operator[](int32_t index)
 		{
-			return data[index];
+			switch (index)
+			{
+			case 0: return x;
+			case 1: return y;
+			case 2: return z;
+			case 3: return w;
+			default: throw std::out_of_range("Invalid Vector4 index!");
+			}
 		}
 
-		inline constexpr Vector4 operator-() const
+		constexpr Vector4 operator-() const
 		{
 			return Vector4(-x, -y, -z, -w);
 		}
 
-		inline constexpr Vector4 operator*(float scalar) const
+		constexpr Vector4 operator*(float scalar) const
 		{
 			return Vector4(x * scalar, y * scalar, z * scalar, w * scalar);
 		}
 
-		inline constexpr Vector4 operator/(float scalar) const
+		constexpr Vector4 operator/(float scalar) const
 		{
 			return Vector4(x / scalar, y / scalar, z / scalar, w / scalar);
 		}
 
-		inline constexpr Vector4 operator+(const Vector4& other) const
+		constexpr Vector4 operator+(const Vector4& other) const
 		{
 			return Vector4(x + other.x, y + other.y, z + other.z, w + other.w);
 		}
 
-		inline constexpr Vector4 operator-(const Vector4& other) const
+		constexpr Vector4 operator-(const Vector4& other) const
 		{
 			return Vector4(x - other.x, y - other.y, z - other.z, w - other.w);
 		}
 
-		inline constexpr Vector4 operator*(const Vector4& other) const
+		constexpr Vector4 operator*(const Vector4& other) const
 		{
 			return Vector4(x * other.x, y * other.y, z * other.z, w * other.w);
 		}
 
-		inline constexpr Vector4 operator/(const Vector4& other) const
+		constexpr Vector4 operator/(const Vector4& other) const
 		{
 			return Vector4(x / other.x, y / other.y, z / other.z, w / other.w);
 		}
 
-		inline constexpr Vector4& operator*=(float scalar)
+		constexpr Vector4& operator*=(float scalar)
 		{
 			x *= scalar;
 			y *= scalar;
@@ -95,7 +112,7 @@ namespace agm
 			return *this;
 		}
 
-		inline constexpr Vector4& operator/=(float scalar)
+		constexpr Vector4& operator/=(float scalar)
 		{
 			x /= scalar;
 			y /= scalar;
@@ -104,7 +121,7 @@ namespace agm
 			return *this;
 		}
 
-		inline constexpr Vector4& operator+=(const Vector4& other)
+		constexpr Vector4& operator+=(const Vector4& other)
 		{
 			x += other.x;
 			y += other.y;
@@ -113,7 +130,7 @@ namespace agm
 			return *this;
 		}
 
-		inline constexpr Vector4& operator-=(const Vector4& other)
+		constexpr Vector4& operator-=(const Vector4& other)
 		{
 			x -= other.x;
 			y -= other.y;
@@ -122,7 +139,7 @@ namespace agm
 			return *this;
 		}
 
-		inline constexpr Vector4& operator*=(const Vector4& other)
+		constexpr Vector4& operator*=(const Vector4& other)
 		{
 			x *= other.x;
 			y *= other.y;
@@ -131,7 +148,7 @@ namespace agm
 			return *this;
 		}
 
-		inline constexpr Vector4& operator/=(const Vector4& other)
+		constexpr Vector4& operator/=(const Vector4& other)
 		{
 			x /= other.x;
 			y /= other.y;
@@ -140,106 +157,39 @@ namespace agm
 			return *this;
 		}
 
-		inline constexpr bool operator==(const Vector4& other) const
+		constexpr bool operator==(const Vector4& other) const
 		{
 			return x == other.x && y == other.y && z == other.z && w == other.w;
 		}
 
-		inline constexpr bool operator!=(const Vector4& other) const
+		constexpr bool operator!=(const Vector4& other) const
 		{
 			return !(*this == other);
 		}
 
-		friend inline constexpr Vector4 operator*(float scalar, const Vector4& v)
+		friend  constexpr Vector4 operator*(float scalar, const Vector4& v)
 		{
 			return Vector4(v.x * scalar, v.y * scalar, v.z * scalar, v.w * scalar);
 		}
 
-		static inline float Distance(const Vector4& a, const Vector4& b)
-		{
-			return (a - b).Length();
-		}
+	public:
 
-		static inline constexpr float Dot(const Vector4& a, const Vector4& b)
-		{
-			return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
-		}
-
-		static inline constexpr Vector4 Lerp(const Vector4& a, const Vector4& b, float t)
-		{
-			t = Clamp01(t);
-			return Vector4(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t, a.z + (b.z - a.z) * t, a.w + (b.w - a.w) * t);
-		}
-
-		static inline constexpr Vector4 LerpUnclamped(const Vector4& a, const Vector4& b, float t)
-		{
-			return Vector4(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t, a.z + (b.z - a.z) * t, a.w + (b.w - a.w) * t);
-		}
-
-		static inline constexpr Vector4 Max(const Vector4& a, const Vector4& b)
-		{
-			return Vector4(agm::Max(a.x, b.x), agm::Max(a.y, b.y), agm::Max(a.z, b.z), agm::Max(a.w, b.w));
-		}
-
-		static inline constexpr Vector4 Min(const Vector4& a, const Vector4& b)
-		{
-			return Vector4(agm::Min(a.x, b.x), agm::Min(a.y, b.y), agm::Min(a.z, b.z), agm::Min(a.w, b.w));
-		}
-
-		static inline Vector4 MoveTowards(const Vector4& current, const Vector4& target, float maxDistanceDelta)
-		{
-			Vector4 delta = target - current;
-			float lengthSq = delta.LengthSquared();
-			if (agm::IsNearlyZero(lengthSq) || (maxDistanceDelta >= 0.f && lengthSq <= maxDistanceDelta * maxDistanceDelta))
-			{
-				return target;
-			}
-
-			float length = std::sqrt(lengthSq);
-			return current + delta / length * maxDistanceDelta;
-		}
-
-		static inline constexpr Vector4 Project(const Vector4& a, const Vector4& b)
-		{
-			return b * (Dot(a, b) / Dot(b, b));
-		}
-
-		inline constexpr bool Equals(const Vector4& other, float tolerance = LOOSE_EPSILON) const
-		{
-			return Abs(x - other.x) <= tolerance && Abs(y - other.y) <= tolerance && Abs(z - other.z) <= tolerance && Abs(w - other.w) <= tolerance;
-		}
-
-		inline constexpr bool IsNearlyZero(float tolerance = LOOSE_EPSILON) const
-		{
-			return Abs(x) <= tolerance && Abs(y) <= tolerance && Abs(z) <= tolerance && Abs(w) <= tolerance;
-		}
-
-		inline constexpr bool IsZero() const
-		{
-			return x == 0.f && y == 0.f && z == 0.f && w == 0.f;
-		}
-
-		inline constexpr bool IsNormalized() const
-		{
-			return Abs(1.f - LengthSquared()) < 0.01f;
-		}
-
-		inline float Length() const
+		float Length() const
 		{
 			return std::sqrt(x * x + y * y + z * z + w * w);
 		}
 
-		inline constexpr float LengthSquared() const
+		constexpr float LengthSquared() const
 		{
 			return x * x + y * y + z * z + w * w;
 		}
 
-		inline void Normalize(float tolerance = EPSILON)
+		void Normalize(float tolerance = EPSILON)
 		{
-			*this = Normalized(tolerance);
+			*this = GetNormalize(tolerance);
 		}
 
-		inline Vector4 Normalized(float tolerance = EPSILON) const
+		Vector4 GetNormalize(float tolerance = EPSILON) const
 		{
 			float lengthSq = LengthSquared();
 			if (lengthSq > tolerance)
@@ -253,7 +203,52 @@ namespace agm
 			}
 		}
 
-		inline constexpr void Set(float x, float y, float z, float w)
+		constexpr Vector4 GetAbs() const
+		{
+			return Vector4(Abs(x), Abs(y), Abs(z), Abs(w));
+		}
+
+		constexpr float GetMax() const
+		{
+			return agm::Max(agm::Max(x, y), agm::Max(z, w));
+		}
+
+		constexpr float GetAbsMax() const
+		{
+			return agm::Max(agm::Max(Abs(x), Abs(y)), agm::Max(Abs(z), Abs(w)));
+		}
+
+		constexpr float GetMin() const
+		{
+			return agm::Min(agm::Min(x, y), agm::Min(z, w));
+		}
+
+		constexpr float GetAbsMin() const
+		{
+			return agm::Min(agm::Min(Abs(x), Abs(y)), agm::Min(Abs(z), Abs(w)));
+		}
+
+		constexpr bool Equals(const Vector4& other, float tolerance = LOOSE_EPSILON) const
+		{
+			return Abs(x - other.x) <= tolerance && Abs(y - other.y) <= tolerance && Abs(z - other.z) <= tolerance && Abs(w - other.w) <= tolerance;
+		}
+
+		constexpr bool IsNearlyZero(float tolerance = LOOSE_EPSILON) const
+		{
+			return Abs(x) <= tolerance && Abs(y) <= tolerance && Abs(z) <= tolerance && Abs(w) <= tolerance;
+		}
+
+		constexpr bool IsZero() const
+		{
+			return x == 0.f && y == 0.f && z == 0.f && w == 0.f;
+		}
+
+		constexpr bool IsNormalized() const
+		{
+			return Abs(1.f - LengthSquared()) < 0.01f;
+		}
+
+		constexpr void Set(float x, float y, float z, float w)
 		{
 			this->x = x;
 			this->y = y;
@@ -264,6 +259,57 @@ namespace agm
 		std::string ToString() const
 		{
 			return std::format("({:.2f}, {:.2f}, {:.2f}, {:.2f})", x, y, z, w);
+		}
+
+	public:
+
+		static float Distance(const Vector4& a, const Vector4& b)
+		{
+			return (a - b).Length();
+		}
+
+		static constexpr float Dot(const Vector4& a, const Vector4& b)
+		{
+			return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
+		}
+
+		static constexpr Vector4 Lerp(const Vector4& a, const Vector4& b, float t)
+		{
+			t = Clamp01(t);
+			return Vector4(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t, a.z + (b.z - a.z) * t, a.w + (b.w - a.w) * t);
+		}
+
+		static constexpr Vector4 LerpUnclamped(const Vector4& a, const Vector4& b, float t)
+		{
+			return Vector4(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t, a.z + (b.z - a.z) * t, a.w + (b.w - a.w) * t);
+		}
+
+		static constexpr Vector4 Max(const Vector4& a, const Vector4& b)
+		{
+			return Vector4(agm::Max(a.x, b.x), agm::Max(a.y, b.y), agm::Max(a.z, b.z), agm::Max(a.w, b.w));
+		}
+
+		static constexpr Vector4 Min(const Vector4& a, const Vector4& b)
+		{
+			return Vector4(agm::Min(a.x, b.x), agm::Min(a.y, b.y), agm::Min(a.z, b.z), agm::Min(a.w, b.w));
+		}
+
+		static Vector4 MoveTowards(const Vector4& current, const Vector4& target, float maxDistanceDelta)
+		{
+			Vector4 direction = target - current;
+			float lengthSq = direction.LengthSquared();
+			if (agm::IsNearlyZero(lengthSq) || (maxDistanceDelta >= 0.f && lengthSq <= maxDistanceDelta * maxDistanceDelta))
+			{
+				return target;
+			}
+
+			float length = std::sqrt(lengthSq);
+			return current + direction / length * maxDistanceDelta;
+		}
+
+		static constexpr Vector4 Project(const Vector4& a, const Vector4& b)
+		{
+			return b * (Dot(a, b) / Dot(b, b));
 		}
 	};
 
