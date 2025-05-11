@@ -7,9 +7,7 @@
 #include "color32.h"
 #include "utilities.h"
 #include "vector2.h"
-#include "vector2_int.h"
 #include "vector3.h"
-#include "vector3_int.h"
 #include "vector4.h"
 
 namespace agm
@@ -29,11 +27,6 @@ namespace agm
 		);
 	}
 
-	inline constexpr Vector2 ToVector2(const Vector2Int& v)
-	{
-		return Vector2((float)v.x, (float)v.y);
-	}
-
 	inline constexpr Vector2 ToVector2(const Vector3& v)
 	{
 		return Vector2(v.x, v.y);
@@ -44,16 +37,6 @@ namespace agm
 		return Vector2(v.x, v.y);
 	}
 
-	inline constexpr Vector2Int ToVector2Int(const Vector3Int& v)
-	{
-		return Vector2Int(v.x, v.y);
-	}
-
-	inline constexpr Vector3 ToVector3(const Vector3Int& v)
-	{
-		return Vector3((float)v.x, (float)v.y, (float)v.z);
-	}
-
 	inline constexpr Vector3 ToVector3(const Vector2& v)
 	{
 		return Vector3(v.x, v.y, 0.f);
@@ -62,11 +45,6 @@ namespace agm
 	inline constexpr Vector3 ToVector3(const Vector4& v)
 	{
 		return Vector3(v.x, v.y, v.z);
-	}
-
-	inline constexpr Vector3Int ToVector3Int(const Vector2Int& v)
-	{
-		return Vector3Int(v.x, v.y, 0);
 	}
 
 	inline constexpr Vector4 ToVector4(const Color& c)
