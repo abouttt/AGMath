@@ -168,10 +168,10 @@ namespace agm
 
 		void Normalize(float tolerance = EPSILON)
 		{
-			*this = GetNormalize(tolerance);
+			*this = GetNormalized(tolerance);
 		}
 
-		Vector2 GetNormalize(float tolerance = EPSILON) const
+		Vector2 GetNormalized(float tolerance = EPSILON) const
 		{
 			float lengthSq = LengthSquared();
 			if (lengthSq > tolerance)

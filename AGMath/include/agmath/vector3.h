@@ -181,10 +181,10 @@ namespace agm
 
 		void Normalize(float tolerance = EPSILON)
 		{
-			*this = GetNormalize(tolerance);
+			*this = GetNormalized(tolerance);
 		}
 
-		Vector3 GetNormalize(float tolerance = EPSILON) const
+		Vector3 GetNormalized(float tolerance = EPSILON) const
 		{
 			float lengthSq = LengthSquared();
 			if (lengthSq > tolerance)
@@ -455,7 +455,7 @@ namespace agm
 			float dot = Clamp(Dot(unitA, unitB), -1.f, 1.f);
 			float theta = std::acos(dot) * t;
 
-			Vector3 relative = (unitB - unitA * dot).GetNormalize();
+			Vector3 relative = (unitB - unitA * dot).GetNormalized();
 			Vector3 direction = unitA * std::cos(theta) + relative * std::sin(theta);
 			float length = agm::LerpUnclamped(lengthA, lengthB, t);
 

@@ -167,7 +167,7 @@ namespace agm
 			return !(*this == other);
 		}
 
-		friend  constexpr Vector4 operator*(float scalar, const Vector4& v)
+		friend constexpr Vector4 operator*(float scalar, const Vector4& v)
 		{
 			return Vector4(v.x * scalar, v.y * scalar, v.z * scalar, v.w * scalar);
 		}
@@ -186,10 +186,10 @@ namespace agm
 
 		void Normalize(float tolerance = EPSILON)
 		{
-			*this = GetNormalize(tolerance);
+			*this = GetNormalized(tolerance);
 		}
 
-		Vector4 GetNormalize(float tolerance = EPSILON) const
+		Vector4 GetNormalized(float tolerance = EPSILON) const
 		{
 			float lengthSq = LengthSquared();
 			if (lengthSq > tolerance)
