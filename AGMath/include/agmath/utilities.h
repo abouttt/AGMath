@@ -283,9 +283,9 @@ namespace agm
 		return std::ceil(value);
 	}
 
-	inline int CeilToInt(float value)
+	inline int32_t CeilToInt(float value)
 	{
-		return (int)std::ceil(value);
+		return (int32_t)std::ceil(value);
 	}
 
 	inline float Floor(float value)
@@ -293,9 +293,9 @@ namespace agm
 		return std::floor(value);
 	}
 
-	inline int FloorToInt(float value)
+	inline int32_t FloorToInt(float value)
 	{
-		return (int)std::floor(value);
+		return (int32_t)std::floor(value);
 	}
 
 	inline float Round(float value)
@@ -303,9 +303,9 @@ namespace agm
 		return std::round(value);
 	}
 
-	inline int RoundToInt(float value)
+	inline int32_t RoundToInt(float value)
 	{
-		return (int)std::round(value);
+		return (int32_t)std::round(value);
 	}
 
 	inline float GammaToLinearSpace(float value)
