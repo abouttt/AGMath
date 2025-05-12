@@ -7,8 +7,8 @@ using namespace agm;
 
 int main()
 {
-    Quaternion myRotation = Quaternion::IDENTITY;
-    myRotation.SetEulerAngles(Vector3(150, 35, 45));
-    cout << myRotation.GetEulerAngles().ToString();
+	auto scale = Vector3(5, 3, 2);
+	auto matrix = Matrix4x4::TRS(Vector3::ZERO, Quaternion::IDENTITY, scale);
+	cout << matrix.Determinant();
 }
 
