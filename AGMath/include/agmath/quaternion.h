@@ -141,7 +141,7 @@ namespace agm
 
 		constexpr Quaternion& operator*=(const Quaternion& other)
 		{
-			*this = *this * other;
+			*this = (*this) * other;
 			return *this;
 		}
 
@@ -269,7 +269,7 @@ namespace agm
 
 		constexpr Vector3 UnrotateVector3(const Vector3& v) const
 		{
-			Vector3 qv(-x, -y, -z);
+			Vector3 qv = -v;
 			Vector3 t = Vector3::Cross(qv, v) * 2.f;
 			return v + (t * w) + Vector3::Cross(qv, t);
 		}
