@@ -7,8 +7,10 @@ using namespace agm;
 
 int main()
 {
-	auto scale = Vector3(5, 3, 2);
-	auto matrix = Matrix4x4::TRS(Vector3::ZERO, Quaternion::IDENTITY, scale);
-	cout << matrix.Determinant();
+	Quaternion rotation = Quaternion::Euler(0, 90, 0);
+	float angle;
+	Vector3 axis;
+	rotation.ToAngleAxis(angle, axis);
+	cout << angle << " " << axis.ToString() << endl;
 }
 

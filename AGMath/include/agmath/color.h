@@ -1,8 +1,8 @@
 #pragma once
 
-#include <array>
-#include <cstddef>
+#include <cstdint>
 #include <format>
+#include <stdexcept>
 #include <string>
 
 #include "utilities.h"
@@ -11,6 +11,15 @@ namespace agm
 {
 	struct Color
 	{
+	public:
+
+		float r;
+		float g;
+		float b;
+		float a;
+
+	public:
+
 		static const Color BLACK;
 		static const Color BLUE;
 		static const Color CLEAR;
@@ -22,15 +31,7 @@ namespace agm
 		static const Color WHITE;
 		static const Color YELLOW;
 
-		union
-		{
-			struct
-			{
-				float r, g, b, a;
-			};
-
-			std::array<float, 4> data;
-		};
+	public:
 
 		constexpr Color()
 			: r(0.f)
@@ -56,14 +57,30 @@ namespace agm
 		{
 		}
 
-		constexpr float operator[](size_t index) const
+	public:
+
+		constexpr float operator[](int32_t index) const
 		{
-			return data[index];
+			switch (index)
+			{
+			case 0: return r;
+			case 1: return g;
+			case 2: return b;
+			case 3: return a;
+			default: throw std::out_of_range("Invalid Color index!");
+			}
 		}
 
-		constexpr float& operator[](size_t index)
+		constexpr float& operator[](int32_t index)
 		{
-			return data[index];
+			switch (index)
+			{
+			case 0: return r;
+			case 1: return g;
+			case 2: return b;
+			case 3: return a;
+			default: throw std::out_of_range("Invalid Color index!");
+			}
 		}
 
 		constexpr Color operator*(float scalar) const
@@ -151,9 +168,44 @@ namespace agm
 			return Color(c.r * scalar, c.g * scalar, c.b * scalar, c.a * scalar);
 		}
 
-		static inline Color HSVToRGB(float H, float S, float V, bool hdr = true)
+	public:
+
+		Color Gamma() const
+		{
+			return Color(LinearToGammaSpace(r), LinearToGammaSpace(g), LinearToGammaSpace(b), a);
+		}
+
+		constexpr float GrayScale() const
+		{
+			return 0.299f * r + 0.587f * g + 0.114f * b;
+		}
+
+		Color Linear() const
+		{
+			return Color(GammaToLinearSpace(r), GammaToLinearSpace(g), GammaToLinearSpace(b), a);
+		}
+
+		constexpr float MaxColorComponent() const
+		{
+			return Max3(r, g, b);
+		}
+
+		constexpr bool Equals(const Color& other, float tolerance = LOOSE_EPSILON) const
+		{
+			return Abs(r - other.r) <= tolerance && Abs(g - other.g) <= tolerance && Abs(b - other.b) <= tolerance && Abs(a - other.a) <= tolerance;
+		}
+
+		std::string ToString() const
+		{
+			return std::format("({:.3f}, {:.3f}, {:.3f}, {:.3f})", r, g, b, a);
+		}
+
+	public:
+
+		static Color HSVToRGB(float H, float S, float V, bool hdr = true)
 		{
 			Color result = WHITE;
+
 			if (S == 0.f)
 			{
 				result.r = V;
@@ -173,7 +225,7 @@ namespace agm
 				result.b = 0.f;
 
 				float scaledHue = H * 6.f;
-				int sector = FloorToInt(scaledHue);
+				int32_t sector = FloorToInt(scaledHue);
 				float fractional = scaledHue - (float)sector;
 
 				float p = V * (1.f - S);
@@ -235,18 +287,18 @@ namespace agm
 			return result;
 		}
 
-		static inline constexpr Color Lerp(const Color& a, const Color& b, float t)
+		static constexpr Color Lerp(const Color& a, const Color& b, float t)
 		{
 			t = Clamp01(t);
 			return Color(a.r + (b.r - a.r) * t, a.g + (b.g - a.g) * t, a.b + (b.b - a.b) * t, a.a + (b.a - a.a) * t);
 		}
 
-		static inline constexpr Color LerpUnclamped(const Color& a, const Color& b, float t)
+		static constexpr Color LerpUnclamped(const Color& a, const Color& b, float t)
 		{
 			return Color(a.r + (b.r - a.r) * t, a.g + (b.g - a.g) * t, a.b + (b.b - a.b) * t, a.a + (b.a - a.a) * t);
 		}
 
-		static inline void RGBToHSV(Color rgbColor, float& outH, float& outS, float& outV)
+		static constexpr void RGBToHSV(Color rgbColor, float& outH, float& outS, float& outV)
 		{
 			if (rgbColor.b > rgbColor.g && rgbColor.b > rgbColor.r)
 			{
@@ -262,38 +314,9 @@ namespace agm
 			}
 		}
 
-		inline bool Equals(const Color& other, float tolerance = LOOSE_EPSILON) const
-		{
-			return Abs(r - other.r) <= tolerance && Abs(g - other.g) <= tolerance && Abs(b - other.b) <= tolerance && Abs(a - other.a) <= tolerance;
-		}
-
-		inline Color Gamma() const
-		{
-			return Color(LinearToGammaSpace(r), LinearToGammaSpace(g), LinearToGammaSpace(b), a);
-		}
-
-		inline float GrayScale() const
-		{
-			return 0.299f * r + 0.587f * g + 0.114f * b;
-		}
-
-		inline Color Linear() const
-		{
-			return Color(GammaToLinearSpace(r), GammaToLinearSpace(g), GammaToLinearSpace(b), a);
-		}
-
-		inline float MaxColorComponent() const
-		{
-			return Max3(r, g, b);
-		}
-
-		std::string ToString() const
-		{
-			return std::format("({:.3f}, {:.3f}, {:.3f}, {:.3f})", r, g, b, a);
-		}
-
 	private:
-		static void RGBToHSVHelper(float offset, float dominantcolor, float color1, float color2, float& outH, float& outS, float& outV)
+
+		static constexpr void RGBToHSVHelper(float offset, float dominantcolor, float color1, float color2, float& outH, float& outS, float& outV)
 		{
 			outV = dominantcolor;
 			if (outV != 0.f)
