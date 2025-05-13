@@ -203,6 +203,11 @@ namespace agm
 			}
 		}
 
+		constexpr bool IsNormalized() const
+		{
+			return Abs(1.f - LengthSquared()) < THRESH_VECTOR_NORMALIZED;
+		}
+
 		constexpr Vector4 GetAbs() const
 		{
 			return Vector4(Abs(x), Abs(y), Abs(z), Abs(w));
@@ -228,11 +233,6 @@ namespace agm
 			return agm::Min(agm::Min(Abs(x), Abs(y)), agm::Min(Abs(z), Abs(w)));
 		}
 
-		constexpr bool Equals(const Vector4& other, float tolerance = LOOSE_EPSILON) const
-		{
-			return Abs(x - other.x) <= tolerance && Abs(y - other.y) <= tolerance && Abs(z - other.z) <= tolerance && Abs(w - other.w) <= tolerance;
-		}
-
 		constexpr bool IsNearlyZero(float tolerance = LOOSE_EPSILON) const
 		{
 			return Abs(x) <= tolerance && Abs(y) <= tolerance && Abs(z) <= tolerance && Abs(w) <= tolerance;
@@ -243,17 +243,17 @@ namespace agm
 			return x == 0.f && y == 0.f && z == 0.f && w == 0.f;
 		}
 
-		constexpr bool IsNormalized() const
-		{
-			return Abs(1.f - LengthSquared()) < 0.01f;
-		}
-
 		constexpr void Set(float x, float y, float z, float w)
 		{
 			this->x = x;
 			this->y = y;
 			this->z = z;
 			this->w = w;
+		}
+
+		constexpr bool Equals(const Vector4& other, float tolerance = LOOSE_EPSILON) const
+		{
+			return Abs(x - other.x) <= tolerance && Abs(y - other.y) <= tolerance && Abs(z - other.z) <= tolerance && Abs(w - other.w) <= tolerance;
 		}
 
 		std::string ToString() const

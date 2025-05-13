@@ -198,6 +198,11 @@ namespace agm
 			}
 		}
 
+		constexpr bool IsNormalized() const
+		{
+			return Abs(1.f - LengthSquared()) < THRESH_VECTOR_NORMALIZED;
+		}
+
 		Vector3 RotateAngleAxis(float angle, const Vector3& axis)
 		{
 			float radians = angle * DEG2RAD;
@@ -250,16 +255,6 @@ namespace agm
 			return Min3(Abs(x), Abs(y), Abs(z));
 		}
 
-		constexpr bool Equals(const Vector3& other, float tolerance = LOOSE_EPSILON) const
-		{
-			return Abs(x - other.x) <= tolerance && Abs(y - other.y) <= tolerance && Abs(z - other.z) <= tolerance;
-		}
-
-		constexpr bool IsNormalized() const
-		{
-			return Abs(1.f - LengthSquared()) < 0.01f;
-		}
-
 		constexpr bool IsNearlyZero(float tolerance = LOOSE_EPSILON) const
 		{
 			return Abs(x) <= tolerance && Abs(y) <= tolerance && Abs(z) <= tolerance;
@@ -275,6 +270,11 @@ namespace agm
 			this->x = x;
 			this->y = y;
 			this->z = z;
+		}
+
+		constexpr bool Equals(const Vector3& other, float tolerance = LOOSE_EPSILON) const
+		{
+			return Abs(x - other.x) <= tolerance && Abs(y - other.y) <= tolerance && Abs(z - other.z) <= tolerance;
 		}
 
 		std::string ToString() const

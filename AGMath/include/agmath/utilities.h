@@ -7,12 +7,17 @@ namespace agm
 {
 	inline constexpr float EPSILON = 1e-8f;
 	inline constexpr float LOOSE_EPSILON = 1e-4f;
+
 	inline constexpr float PI = 3.141592653589793f;
 	inline constexpr float TWO_PI = 6.283185307179586f;
 	inline constexpr float HALF_PI = 1.5707963267948966f;
 	inline constexpr float INV_PI = 0.3183098861837907f;
+
 	inline constexpr float DEG2RAD = 0.017453292519943295f;
 	inline constexpr float RAD2DEG = 57.29577951308232f;
+
+	inline constexpr float THRESH_VECTOR_NORMALIZED = 0.01f;
+	inline constexpr float THRESH_QUAT_NORMALIZED = 0.01f;
 
 	template<typename T>
 	inline constexpr T Abs(T value)

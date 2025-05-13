@@ -186,6 +186,11 @@ namespace agm
 			}
 		}
 
+		constexpr bool IsNormalized() const
+		{
+			return Abs(1.f - LengthSquared()) < THRESH_QUAT_NORMALIZED;
+		}
+
 		Vector3 GetEulerAngles() const
 		{
 			Vector3 euler;
@@ -222,16 +227,9 @@ namespace agm
 			return euler;
 		}
 
-		float GetAngle() const
-		{
-			float wClamped = Clamp(w, -1.f, 1.f);
-			return 2.f * std::acos(wClamped) * RAD2DEG;
-		}
-
 		Vector3 GetRotationAxis() const
 		{
-			float wClamped = Clamp(w, -1.f, 1.f);
-			float s = std::sqrt(Max(1.f - (wClamped * wClamped), 0.f));
+			float s = std::sqrt(Max(1.f - (w * w), 0.f));
 
 			if (s >= 0.0001f)
 			{
@@ -243,7 +241,7 @@ namespace agm
 
 		void ToAngleAxis(float& outAngle, Vector3& outAxis) const
 		{
-			outAngle = GetAngle();
+			outAngle = 2.f * std::acos(w) * RAD2DEG;
 			outAxis = GetRotationAxis();
 		}
 
@@ -276,16 +274,6 @@ namespace agm
 			return v + (t * w) + Vector3::Cross(qv, t);
 		}
 
-		constexpr bool Equals(const Quaternion& other, float tolerance = LOOSE_EPSILON) const
-		{
-			return Abs(x - other.x) <= tolerance && Abs(y - other.y) <= tolerance && Abs(z - other.z) <= tolerance && Abs(w - other.w) <= tolerance;
-		}
-
-		constexpr bool IsNormalized() const
-		{
-			return Abs(1.f - LengthSquared()) < 0.01f;
-		}
-
 		void SetEulerAngles(const Vector3& euler)
 		{
 			*this = Euler(euler.x, euler.y, euler.z);
@@ -301,12 +289,22 @@ namespace agm
 			*this = LookRotation(view, up);
 		}
 
+		constexpr bool IsIdentity(float tolerance = EPSILON) const
+		{
+			return Equals(IDENTITY, tolerance);
+		}
+
 		constexpr void Set(float x, float y, float z, float w)
 		{
 			this->x = x;
 			this->y = y;
 			this->z = z;
 			this->w = w;
+		}
+
+		constexpr bool Equals(const Quaternion& other, float tolerance = LOOSE_EPSILON) const
+		{
+			return Abs(x - other.x) <= tolerance && Abs(y - other.y) <= tolerance && Abs(z - other.z) <= tolerance && Abs(w - other.w) <= tolerance;
 		}
 
 		std::string ToString() const

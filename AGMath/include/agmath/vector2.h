@@ -185,6 +185,11 @@ namespace agm
 			}
 		}
 
+		constexpr bool IsNormalized() const
+		{
+			return Abs(1.f - LengthSquared()) < THRESH_VECTOR_NORMALIZED;
+		}
+
 		Vector2 GetRotate(float angle)
 		{
 			float radians = angle * DEG2RAD;
@@ -218,16 +223,6 @@ namespace agm
 			return agm::Min(Abs(x), Abs(y));
 		}
 
-		constexpr bool Equals(const Vector2& other, float tolerance = LOOSE_EPSILON) const
-		{
-			return Abs(x - other.x) <= tolerance && Abs(y - other.y) <= tolerance;
-		}
-
-		constexpr bool IsNormalized() const
-		{
-			return Abs(1.f - LengthSquared()) < 0.01f;
-		}
-
 		constexpr bool IsNearlyZero(float tolerance = LOOSE_EPSILON) const
 		{
 			return Abs(x) <= tolerance && Abs(y) <= tolerance;
@@ -242,6 +237,11 @@ namespace agm
 		{
 			this->x = x;
 			this->y = y;
+		}
+
+		constexpr bool Equals(const Vector2& other, float tolerance = LOOSE_EPSILON) const
+		{
+			return Abs(x - other.x) <= tolerance && Abs(y - other.y) <= tolerance;
 		}
 
 		std::string ToString() const
