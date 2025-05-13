@@ -221,7 +221,7 @@ namespace agm
 			float ys = axis.y * sinTheta;
 			float zs = axis.z * sinTheta;
 
-			const float omc = 1.f - cosTheta;
+			float omc = 1.f - cosTheta;
 
 			return Vector3(
 				(omc * xx + cosTheta) * x + (omc * xy - zs) * y + (omc * zx + ys) * z,
