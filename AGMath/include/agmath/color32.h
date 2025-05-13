@@ -1,8 +1,8 @@
 #pragma once
 
-#include <array>
-#include <cstddef>
+#include <cstdint>
 #include <format>
+#include <stdexcept>
 #include <string>
 
 #include "utilities.h"
@@ -11,15 +11,14 @@ namespace agm
 {
 	struct Color32
 	{
-		union
-		{
-			struct
-			{
-				uint8_t r, g, b, a;
-			};
+	public:
 
-			std::array<uint8_t, 4> data;
-		};
+		uint8_t r;
+		uint8_t g;
+		uint8_t b;
+		uint8_t a;
+
+	public:
 
 		constexpr Color32()
 			: r(0)
@@ -37,14 +36,30 @@ namespace agm
 		{
 		}
 
-		constexpr uint8_t operator[](size_t index) const
+	public:
+
+		constexpr uint8_t operator[](int32_t index) const
 		{
-			return data[index];
+			switch (index)
+			{
+			case 0: return r;
+			case 1: return g;
+			case 2: return b;
+			case 3: return a;
+			default: throw std::out_of_range("Invalid Color32 index!");
+			}
 		}
 
-		constexpr uint8_t& operator[](size_t index)
+		constexpr uint8_t& operator[](int32_t index)
 		{
-			return data[index];
+			switch (index)
+			{
+			case 0: return r;
+			case 1: return g;
+			case 2: return b;
+			case 3: return a;
+			default: throw std::out_of_range("Invalid Color32 index!");
+			}
 		}
 
 		constexpr bool operator==(const Color32& other) const
@@ -57,7 +72,9 @@ namespace agm
 			return !(*this == other);
 		}
 
-		static inline constexpr Color32 Lerp(const Color32& a, const Color32& b, float t)
+	public:
+
+		static constexpr Color32 Lerp(const Color32& a, const Color32& b, float t)
 		{
 			t = Clamp01(t);
 			return Color32(
@@ -68,7 +85,7 @@ namespace agm
 			);
 		}
 
-		static inline constexpr Color32 LerpUnclamped(const Color32& a, const Color32& b, float t)
+		static constexpr Color32 LerpUnclamped(const Color32& a, const Color32& b, float t)
 		{
 			return Color32(
 				(uint8_t)((float)(int)a.r + (float)(b.r - a.r) * t),
