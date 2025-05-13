@@ -171,7 +171,7 @@ namespace agm
 	inline constexpr float SmoothStep(float from, float to, float t)
 	{
 		t = Clamp01(t);
-		t = -2.f * t * t * t + 3.f * t * t;
+		t = t * t * (3.f - 2.f * t);
 		return to * t + from * (1.f - t);
 	}
 
