@@ -30,7 +30,7 @@ namespace agm
 			: x(0.f)
 			, y(0.f)
 			, z(0.f)
-			, w(0.f)
+			, w(1.f)
 		{
 		}
 
@@ -195,8 +195,7 @@ namespace agm
 		{
 			Vector3 euler;
 
-			float sinPitch = 2.f * (w * x - y * z);
-			sinPitch = Clamp(sinPitch, -1.f, 1.f);
+			float sinPitch = Clamp(2.f * (w * x - y * z), -1.f, 1.f);
 			euler.x = std::asin(sinPitch);
 
 			if (Abs(sinPitch) < 0.99999f)
@@ -208,13 +207,11 @@ namespace agm
 			{
 				euler.y = std::atan2(2.f * y * w - 2.f * x * z, 1.f - 2.f * y * y - 2.f * z * z);
 				euler.z = 0.f;
-				euler.y = std::atan2(2.f * (x * z + w * y), 1.f - 2.f * (y * y + x * x));
-				euler.z = 0.f;
 			}
 
 			euler *= RAD2DEG;
 
-			for (int i = 0; i < 3; i++)
+			for (int32_t i = 0; i < 3; i++)
 			{
 				float& angle = euler[i];
 				angle = std::fmod(angle, 360.f);
@@ -229,8 +226,7 @@ namespace agm
 
 		Vector3 GetRotationAxis() const
 		{
-			float s = std::sqrt(Max(1.f - (w * w), 0.f));
-
+			float s = std::sqrt(Max(0.f, 1.f - (w * w)));
 			if (s >= 0.0001f)
 			{
 				return Vector3(x / s, y / s, z / s);
@@ -241,8 +237,14 @@ namespace agm
 
 		void ToAngleAxis(float& outAngle, Vector3& outAxis) const
 		{
-			outAngle = 2.f * std::acos(w) * RAD2DEG;
+			float clampedW = Clamp(w, -1.f, 1.f);
+			outAngle = 2.f * std::acos(clampedW) * RAD2DEG;
 			outAxis = GetRotationAxis();
+
+			if (Abs(outAngle) <= EPSILON)
+			{
+				outAxis = Vector3::RIGHT;
+			}
 		}
 
 		constexpr Vector3 GetAxisX() const
@@ -269,7 +271,7 @@ namespace agm
 
 		constexpr Vector3 UnrotateVector3(const Vector3& v) const
 		{
-			Vector3 qv = -v;
+			Vector3 qv(-x, -y, -z);
 			Vector3 t = Vector3::Cross(qv, v) * 2.f;
 			return v + (t * w) + Vector3::Cross(qv, t);
 		}
@@ -291,7 +293,7 @@ namespace agm
 
 		constexpr bool IsIdentity(float tolerance = EPSILON) const
 		{
-			return Equals(IDENTITY, tolerance);
+			return Equals(Quaternion::IDENTITY, tolerance);
 		}
 
 		constexpr void Set(float x, float y, float z, float w)
@@ -302,7 +304,7 @@ namespace agm
 			this->w = w;
 		}
 
-		constexpr bool Equals(const Quaternion& other, float tolerance = LOOSE_EPSILON) const
+		constexpr bool Equals(const Quaternion& other, float tolerance = EPSILON) const
 		{
 			return Abs(x - other.x) <= tolerance && Abs(y - other.y) <= tolerance && Abs(z - other.z) <= tolerance && Abs(w - other.w) <= tolerance;
 		}
@@ -316,33 +318,24 @@ namespace agm
 
 		static float Angle(const Quaternion& a, const Quaternion& b)
 		{
-			Quaternion aNormalized = a.GetNormalized();
-			Quaternion bNormalized = b.GetNormalized();
-
-			float dotAB = Dot(aNormalized, bNormalized);
+			float dotAB = Dot(a.GetNormalized(), b.GetNormalized());
 			float clampedDot = Clamp(dotAB, -1.f, 1.f);
-
 			return std::acos(Abs(clampedDot)) * 2.f * RAD2DEG;
 		}
 
 		static Quaternion AngleAxis(float angle, const Vector3& axis)
 		{
-			if (axis.LengthSquared() < EPSILON)
+			if (axis.LengthSquared() <= EPSILON)
 			{
 				return Quaternion::IDENTITY;
 			}
 
-			Vector3 normalizedAxis = axis.GetNormalized();
-			float halfAngleRad = angle * DEG2RAD * 0.5f;
-			float s = std::sin(halfAngleRad);
-			float c = std::cos(halfAngleRad);
+			Vector3 normalizedAxis = axis.GetNormalized(EPSILON);
+			float halfRad = angle * DEG2RAD * 0.5f;
+			float s = std::sin(halfRad);
+			float c = std::cos(halfRad);
 
-			return Quaternion(
-				normalizedAxis.x * s,
-				normalizedAxis.y * s,
-				normalizedAxis.z * s,
-				c
-			);
+			return Quaternion(normalizedAxis.x * s, normalizedAxis.y * s, normalizedAxis.z * s, c);
 		}
 
 		static constexpr Quaternion Conjugate(const Quaternion& q)
@@ -366,52 +359,46 @@ namespace agm
 
 		static Quaternion Euler(const Vector3& euler)
 		{
-			return Quaternion::Euler(euler.x, euler.y, euler.z);
+			return Euler(euler.x, euler.y, euler.z);
 		}
 
 		static Quaternion FromToRotation(const Vector3& fromDirection, const Vector3& toDirection)
 		{
 			Vector3 v0 = fromDirection.GetNormalized();
 			Vector3 v1 = toDirection.GetNormalized();
-			float dot = Vector3::Dot(v0, v1);
 
+			float dot = Vector3::Dot(v0, v1);
 			if (dot >= 1.f - EPSILON)
 			{
 				return Quaternion::IDENTITY;
 			}
 			else if (dot <= -1.f + EPSILON)
 			{
-				Vector3 orthoAxis = Vector3::Cross(Vector3::RIGHT, v0);
-				if (orthoAxis.LengthSquared() < EPSILON)
+				Vector3 axis = Vector3::Cross(Vector3::RIGHT, v0);
+				if (axis.LengthSquared() <= EPSILON)
 				{
-					orthoAxis = Vector3::Cross(Vector3::UP, v0);
+					axis = Vector3::Cross(Vector3::UP, v0);
 				}
-				orthoAxis.Normalize();
-				return AngleAxis(180.f, orthoAxis);
+
+				return AngleAxis(180.f, axis);
 			}
-			else
-			{
-				float s = std::sqrt((1.f + dot) * 2.f);
-				float invS = 1.f / s;
-				Vector3 c = Vector3::Cross(v0, v1);
-				return Quaternion(
-					c.x * invS,
-					c.y * invS,
-					c.z * invS,
-					s * 0.5f
-				).GetNormalized();
-			}
+
+			float s = std::sqrt((1.f + dot) * 2.f);
+			float invS = 1.f / s;
+			Vector3 c = Vector3::Cross(v0, v1);
+
+			return Quaternion(c.x * invS, c.y * invS, c.z * invS, s * 0.5f).GetNormalized();
 		}
 
-		static constexpr Quaternion Inverse(const Quaternion& q)
+		static Quaternion Inverse(const Quaternion& q)
 		{
 			float lengthSq = q.LengthSquared();
 
-			if (Abs(lengthSq - 1.f) < 0.01f)
+			if (Abs(lengthSq - 1.f) <= EPSILON)
 			{
 				return Conjugate(q);
 			}
-			else if (lengthSq < EPSILON)
+			else if (lengthSq <= EPSILON)
 			{
 				return Quaternion::IDENTITY;
 			}
@@ -421,8 +408,7 @@ namespace agm
 
 		static Quaternion Lerp(const Quaternion& a, const Quaternion& b, float t)
 		{
-			t = Clamp01(t);
-			return LerpUnclamped(a, b, t);
+			t = Clamp01(t); return LerpUnclamped(a, b, t);
 		}
 
 		static Quaternion LerpUnclamped(const Quaternion& a, const Quaternion& b, float t)
@@ -443,7 +429,7 @@ namespace agm
 
 		static Quaternion LookRotation(const Vector3& forward, const Vector3& upwards = Vector3::UP)
 		{
-			if (forward.LengthSquared() < EPSILON)
+			if (forward.LengthSquared() <= EPSILON)
 			{
 				return Quaternion::IDENTITY;
 			}
@@ -451,7 +437,7 @@ namespace agm
 			Vector3 f = forward.GetNormalized();
 			Vector3 r = Vector3::Cross(upwards, f).GetNormalized();
 
-			if (r.LengthSquared() < EPSILON)
+			if (r.LengthSquared() <= EPSILON)
 			{
 				if (Abs(f.y) > 1.f - EPSILON)
 				{
@@ -461,13 +447,33 @@ namespace agm
 				{
 					r = Vector3::Cross(Vector3::RIGHT, f).GetNormalized();
 				}
+
+				if (r.LengthSquared() <= EPSILON)
+				{
+					if (Abs(f.x) > 1.f - EPSILON)
+					{
+						r = Vector3::Cross(Vector3::UP, f).GetNormalized();
+					}
+					else
+					{
+						r = Vector3::RIGHT;
+					}
+				}
 			}
 
 			Vector3 u = Vector3::Cross(f, r);
 
-			float m00 = r.x, m01 = u.x, m02 = f.x;
-			float m10 = r.y, m11 = u.y, m12 = f.y;
-			float m20 = r.z, m21 = u.z, m22 = f.z;
+			float m00 = r.x;
+			float m01 = u.x;
+			float m02 = f.x;
+
+			float m10 = r.y;
+			float m11 = u.y;
+			float m12 = f.y;
+
+			float m20 = r.z;
+			float m21 = u.z;
+			float m22 = f.z;
 
 			float trace = m00 + m11 + m22;
 			Quaternion q;
@@ -515,10 +521,11 @@ namespace agm
 		{
 			float angle = Angle(from, to);
 
-			if (angle < EPSILON || maxDegreesDelta <= 0.f)
+			if (angle <= EPSILON || maxDegreesDelta <= 0.f)
 			{
 				return from;
 			}
+
 			if (maxDegreesDelta >= angle)
 			{
 				return to.GetNormalized();
@@ -539,7 +546,6 @@ namespace agm
 			Quaternion bn = b.GetNormalized();
 
 			float cosHalfTheta = Dot(an, bn);
-
 			if (cosHalfTheta < 0.f)
 			{
 				bn = -bn;
@@ -555,9 +561,10 @@ namespace agm
 			float halfTheta = std::acos(cosHalfTheta);
 			float sinHalfTheta = std::sin(halfTheta);
 
-			if (Abs(sinHalfTheta) < EPSILON)
+			if (Abs(sinHalfTheta) <= EPSILON)
 			{
-				return (an * (1.f - t) + bn * t).GetNormalized();
+				Quaternion result = an * (1.f - t) + bn * t;
+				return result.GetNormalized();
 			}
 
 			float s0 = std::sin((1.f - t) * halfTheta) / sinHalfTheta;

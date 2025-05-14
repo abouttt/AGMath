@@ -7,9 +7,6 @@ using namespace agm;
 
 int main()
 {
-	for (int i = 0; i < 100; i++)
-	{
-		cout << Rand01() << endl;
-	}
+	cout << (1e-6f > 1e-12f);
 }
 
