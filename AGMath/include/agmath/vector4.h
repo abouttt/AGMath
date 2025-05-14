@@ -233,7 +233,7 @@ namespace agm
 			return agm::Min(agm::Min(Abs(x), Abs(y)), agm::Min(Abs(z), Abs(w)));
 		}
 
-		constexpr bool IsNearlyZero(float tolerance = LOOSE_EPSILON) const
+		constexpr bool IsNearlyZero(float tolerance = EPSILON) const
 		{
 			return Abs(x) <= tolerance && Abs(y) <= tolerance && Abs(z) <= tolerance && Abs(w) <= tolerance;
 		}
@@ -251,7 +251,7 @@ namespace agm
 			this->w = w;
 		}
 
-		constexpr bool Equals(const Vector4& other, float tolerance = LOOSE_EPSILON) const
+		constexpr bool Equals(const Vector4& other, float tolerance = EPSILON) const
 		{
 			return Abs(x - other.x) <= tolerance && Abs(y - other.y) <= tolerance && Abs(z - other.z) <= tolerance && Abs(w - other.w) <= tolerance;
 		}

@@ -414,7 +414,7 @@ namespace agm
 			Vector3 c1(c1_4.x, c1_4.y, c1_4.z);
 			Vector3 c2(c2_4.x, c2_4.y, c2_4.z);
 
-			if (c0.LengthSquared() <= EPSILON * EPSILON || c1.LengthSquared() <= EPSILON * EPSILON || c2.LengthSquared() <= EPSILON * EPSILON)
+			if (c0.LengthSquared() <= EPSILON || c1.LengthSquared() <= EPSILON || c2.LengthSquared() <= EPSILON)
 			{
 				return false;
 			}
@@ -427,7 +427,7 @@ namespace agm
 			float dot02 = Vector3::Dot(c0, c2);
 			float dot12 = Vector3::Dot(c1, c2);
 
-			return Abs(dot01) <= LOOSE_EPSILON && Abs(dot02) <= LOOSE_EPSILON && Abs(dot12) <= LOOSE_EPSILON;
+			return Abs(dot01) <= EPSILON && Abs(dot02) <= EPSILON && Abs(dot12) <= EPSILON;
 		}
 
 		constexpr bool IsIdentity(float tolerance = EPSILON) const
@@ -435,7 +435,7 @@ namespace agm
 			return Equals(IDENTITY, tolerance);
 		}
 
-		constexpr bool Equals(const Matrix4x4& other, float tolerance = LOOSE_EPSILON) const
+		constexpr bool Equals(const Matrix4x4& other, float tolerance = EPSILON) const
 		{
 			for (size_t i = 0; i < 16; i++)
 			{
@@ -520,18 +520,18 @@ namespace agm
 		static Matrix4x4 LookAt(const Vector3& from, const Vector3& to, const Vector3& up)
 		{
 			Vector3 zAxis = (to - from).GetNormalized();
-			if (zAxis.LengthSquared() <= EPSILON * EPSILON)
+			if (zAxis.LengthSquared() <= EPSILON)
 			{
 				zAxis = Vector3::FORWARD;
 			}
 
 			Vector3 xAxis = Vector3::Cross(up, zAxis).GetNormalized();
-			if (xAxis.LengthSquared() <= EPSILON * EPSILON)
+			if (xAxis.LengthSquared() <= EPSILON)
 			{
 				if (Abs(zAxis.y - 1.f) <= EPSILON || Abs(zAxis.y + 1.f) <= EPSILON)
 				{
 					xAxis = Vector3::Cross(Vector3::RIGHT, zAxis).GetNormalized();
-					if (xAxis.LengthSquared() <= EPSILON * EPSILON)
+					if (xAxis.LengthSquared() <= EPSILON)
 					{
 						xAxis = Vector3::Cross(Vector3::UP, zAxis).GetNormalized();
 					}
@@ -541,7 +541,7 @@ namespace agm
 					xAxis = Vector3::Cross(Vector3::UP, zAxis).GetNormalized();
 				}
 
-				if (xAxis.LengthSquared() <= EPSILON * EPSILON)
+				if (xAxis.LengthSquared() <= EPSILON)
 				{
 					xAxis = Vector3::RIGHT;
 				}

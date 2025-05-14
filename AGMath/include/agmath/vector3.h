@@ -255,7 +255,7 @@ namespace agm
 			return Min3(Abs(x), Abs(y), Abs(z));
 		}
 
-		constexpr bool IsNearlyZero(float tolerance = LOOSE_EPSILON) const
+		constexpr bool IsNearlyZero(float tolerance = EPSILON) const
 		{
 			return Abs(x) <= tolerance && Abs(y) <= tolerance && Abs(z) <= tolerance;
 		}
@@ -272,7 +272,7 @@ namespace agm
 			this->z = z;
 		}
 
-		constexpr bool Equals(const Vector3& other, float tolerance = LOOSE_EPSILON) const
+		constexpr bool Equals(const Vector3& other, float tolerance = EPSILON) const
 		{
 			return Abs(x - other.x) <= tolerance && Abs(y - other.y) <= tolerance && Abs(z - other.z) <= tolerance;
 		}
@@ -409,7 +409,7 @@ namespace agm
 			const float currentLength = current.Length();
 			const float targetLength = target.Length();
 
-			if (currentLength < EPSILON || targetLength < EPSILON)
+			if (currentLength <= EPSILON || targetLength <= EPSILON)
 			{
 				return MoveTowards(current, target, maxLengthDelta);
 			}
@@ -420,7 +420,7 @@ namespace agm
 			float cosTheta = agm::Clamp(Dot(currentDirection, targetDirection), -1.f, 1.f);
 			float angle = std::acos(cosTheta);
 
-			if (angle < EPSILON)
+			if (angle <= EPSILON)
 			{
 				float newLength = agm::MoveTowards(currentLength, targetLength, maxLengthDelta);
 				return currentDirection * newLength;
@@ -449,7 +449,7 @@ namespace agm
 			float lengthA = a.Length();
 			float lengthB = b.Length();
 
-			if (lengthA < EPSILON || lengthB < EPSILON)
+			if (lengthA <= EPSILON || lengthB <= EPSILON)
 			{
 				return LerpUnclamped(a, b, t);
 			}
