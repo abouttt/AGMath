@@ -139,8 +139,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\agmath\agmath.h" />
-    <ClInclude Include="include\agmath\color.h" />
-    <ClInclude Include="include\agmath\color32.h" />
     <ClInclude Include="include\agmath\conversion.h" />
     <ClInclude Include="include\agmath\matrix4x4.h" />
     <ClInclude Include="include\agmath\quaternion.h" />

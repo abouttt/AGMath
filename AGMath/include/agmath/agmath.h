@@ -1,7 +1,5 @@
 #pragma once
 
-#include "color.h"
-#include "color32.h"
 #include "conversion.h"
 #include "random.h"
 #include "utilities.h"
