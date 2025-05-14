@@ -4,7 +4,6 @@
 #include <bit>
 #include <chrono>
 #include <cstdint>
-#include <utility>
 
 #include "utilities.h"
 
@@ -69,7 +68,7 @@ namespace agm
 
 	inline float Rand01()
 	{
-		return std::ldexp(static_cast<float>(Rand()), -32);
+		return static_cast<float>(Rand()) / UINT32_MAX;
 	}
 
 	inline int32_t RandRange(int32_t minInclusive, int32_t maxExclusive)
@@ -109,6 +108,19 @@ namespace agm
 	{
 		probability = Clamp01(probability);
 		return Rand01() < probability;
+	}
+
+	inline int32_t RandSign()
+	{
+		return RandBool() ? 1 : -1;
+	}
+
+	inline float RandNormal(float mean = 0.f, float stddev = 1.f)
+	{
+		float u1 = Rand01();
+		float u2 = Rand01();
+		float z0 = std::sqrt(-2.f * std::log(u1)) * std::cos(TWO_PI * u2);
+		return z0 * stddev + mean;
 	}
 }
 

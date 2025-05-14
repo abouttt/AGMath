@@ -7,6 +7,9 @@ using namespace agm;
 
 int main()
 {
-	agm::Lerp(0, 100, 0.5);
+	for (int i = 0; i < 100; i++)
+	{
+		cout << Rand01() << endl;
+	}
 }
 
