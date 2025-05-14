@@ -263,6 +263,11 @@ namespace agm
 
 	public:
 
+		static Vector4 Clamp(const Vector4& v, const Vector4& min, const Vector4& max)
+		{
+			return Vector4(agm::Clamp(v.x, min.x, max.x), agm::Clamp(v.y, min.y, max.y), agm::Clamp(v.z, min.z, max.z), agm::Clamp(v.w, min.w, max.w));
+		}
+
 		static float Distance(const Vector4& a, const Vector4& b)
 		{
 			return (a - b).Length();
