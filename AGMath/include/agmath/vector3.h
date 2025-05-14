@@ -292,8 +292,13 @@ namespace agm
 				return 0.f;
 			}
 
-			float cosTheta = Clamp(Dot(from, to) / length, -1.f, 1.f);
+			float cosTheta = agm::Clamp(Dot(from, to) / length, -1.f, 1.f);
 			return std::acos(cosTheta) * RAD2DEG;
+		}
+
+		static Vector3 Clamp(const Vector3& v, const Vector3& min, const Vector3& max)
+		{
+			return Vector3(agm::Clamp(v.x, min.x, max.x), agm::Clamp(v.y, min.y, max.y), agm::Clamp(v.z, min.z, max.z));
 		}
 
 		static Vector3 ClampLength(const Vector3& v, float maxLength)
@@ -372,15 +377,15 @@ namespace agm
 			inoutBinormal.Normalize();
 		}
 
-		static constexpr Vector3 Project(const Vector3& v, const Vector3& normal)
+		static constexpr Vector3 Project(const Vector3& v, const Vector3& onNormal)
 		{
-			float normalLengthSq = Dot(normal, normal);
+			float normalLengthSq = Dot(onNormal, onNormal);
 			if (agm::IsNearlyZero(normalLengthSq))
 			{
 				return Vector3::ZERO;
 			}
 
-			return normal * Dot(v, normal) / normalLengthSq;
+			return onNormal * Dot(v, onNormal) / normalLengthSq;
 		}
 
 		static constexpr Vector3 ProjectOnPlane(const Vector3& v, const Vector3& planeNormal)
@@ -412,7 +417,7 @@ namespace agm
 			Vector3 currentDirection = current / currentLength;
 			Vector3 targetDirection = target / targetLength;
 
-			float cosTheta = Clamp(Dot(currentDirection, targetDirection), -1.f, 1.f);
+			float cosTheta = agm::Clamp(Dot(currentDirection, targetDirection), -1.f, 1.f);
 			float angle = std::acos(cosTheta);
 
 			if (angle < EPSILON)
@@ -452,7 +457,7 @@ namespace agm
 			Vector3 unitA = a / lengthA;
 			Vector3 unitB = b / lengthB;
 
-			float dot = Clamp(Dot(unitA, unitB), -1.f, 1.f);
+			float dot = agm::Clamp(Dot(unitA, unitB), -1.f, 1.f);
 			float theta = std::acos(dot) * t;
 
 			Vector3 relative = (unitB - unitA * dot).GetNormalized();
