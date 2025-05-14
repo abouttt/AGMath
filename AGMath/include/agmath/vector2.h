@@ -190,7 +190,7 @@ namespace agm
 			return Abs(1.f - LengthSquared()) < THRESH_VECTOR_NORMALIZED;
 		}
 
-		Vector2 GetRotated(float angle)
+		Vector2 GetRotated(float angle) const
 		{
 			float radians = angle * DEG2RAD;
 			float cosTheta = std::cos(radians);
@@ -259,8 +259,13 @@ namespace agm
 				return 0.f;
 			}
 
-			float cosTheta = Clamp(Dot(from, to) / length, -1.f, 1.f);
+			float cosTheta = agm::Clamp(Dot(from, to) / length, -1.f, 1.f);
 			return std::acos(cosTheta) * RAD2DEG;
+		}
+
+		static Vector2 Clamp(const Vector2& v, const Vector2& min, const Vector2& max)
+		{
+			return Vector2(agm::Clamp(v.x, min.x, max.x), agm::Clamp(v.y, min.y, max.y));
 		}
 
 		static Vector2 ClampLength(const Vector2& v, float maxLength)
@@ -274,6 +279,11 @@ namespace agm
 			}
 
 			return v;
+		}
+
+		static constexpr float Cross(const Vector2& a, const Vector2& b)
+		{
+			return a.x * b.y - a.y * b.x;
 		}
 
 		static float Distance(const Vector2& a, const Vector2& b)
@@ -325,9 +335,21 @@ namespace agm
 			return Vector2(-v.y, v.x);
 		}
 
+		static Vector2 Project(const Vector2& v, const Vector2& onNormal)
+		{
+			float dot = Dot(v, onNormal);
+			float denom = onNormal.LengthSquared();
+			if (agm::IsNearlyZero(denom))
+			{
+				return Vector2::ZERO;
+			}
+
+			return (dot / denom) * onNormal;
+		}
+
 		static constexpr Vector2 Reflect(const Vector2& inDirection, const Vector2& inNormal)
 		{
-			return (-2.f * Dot(inDirection, inNormal)) * inNormal + inDirection;
+			return inDirection - 2.f * Dot(inDirection, inNormal) * inNormal;
 		}
 
 		static float SignedAngle(const Vector2& from, const Vector2& to)
