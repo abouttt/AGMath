@@ -2,18 +2,19 @@
 
 #include <cmath>
 #include <cstdint>
+#include <numbers>
 
 namespace agm
 {
 	inline constexpr float EPSILON = 1e-6f;
 
-	inline constexpr float PI = 3.141592653589793f;
-	inline constexpr float TWO_PI = 6.283185307179586f;
-	inline constexpr float HALF_PI = 1.5707963267948966f;
-	inline constexpr float INV_PI = 0.3183098861837907f;
+	inline constexpr float PI = std::numbers::pi_v<float>;
+	inline constexpr float TWO_PI = 2.f * PI;
+	inline constexpr float HALF_PI = 0.5f * PI;
+	inline constexpr float INV_PI = 1.f / PI;
 
-	inline constexpr float DEG2RAD = 0.017453292519943295f;
-	inline constexpr float RAD2DEG = 57.29577951308232f;
+	inline constexpr float DEG2RAD = PI / 180.f;
+	inline constexpr float RAD2DEG = 180.f / PI;
 
 	inline constexpr float THRESH_VECTOR_NORMALIZED = 0.01f;
 	inline constexpr float THRESH_QUAT_NORMALIZED = 0.01f;
@@ -27,12 +28,12 @@ namespace agm
 	template<typename T>
 	inline constexpr T Clamp(T x, T min, T max)
 	{
-		return x < min ? min : x > max ? max : x;
+		return x < min ? min : (x > max ? max : x);
 	}
 
 	inline constexpr float Clamp01(float value)
 	{
-		return value < 0.f ? 0.f : value > 1.f ? 1.f : value;
+		return value < 0.f ? 0.f : (value > 1.f ? 1.f : value);
 	}
 
 	template<typename T>
@@ -67,7 +68,7 @@ namespace agm
 
 	inline constexpr float Sign(float value)
 	{
-		return value > 0.f ? 1.f : value < 0.f ? -1.f : 0.f;
+		return value > 0.f ? 1.f : (value < 0.f ? -1.f : 0.f);
 	}
 
 	inline constexpr bool IsNearlyEqual(float a, float b, float tolerance = EPSILON)
@@ -87,7 +88,7 @@ namespace agm
 			return 0.f;
 		}
 
-		return Clamp(value - std::floor(value / length) * length, 0.f, length);
+		return value - std::floor(value / length) * length;
 	}
 
 	inline float PingPong(float t, float length)
@@ -162,7 +163,7 @@ namespace agm
 	inline float MoveTowardsAngle(float current, float target, float maxDelta)
 	{
 		float delta = DeltaAngle(current, target);
-		if (-maxDelta < delta && delta < maxDelta)
+		if (Abs(delta) <= maxDelta)
 		{
 			return target;
 		}
@@ -174,7 +175,27 @@ namespace agm
 	{
 		t = Clamp01(t);
 		t = t * t * (3.f - 2.f * t);
-		return to * t + from * (1.f - t);
+		return from + (to - from) * t;
+	}
+
+	inline constexpr float SmoothStep01(float from, float to, float t)
+	{
+		t = Clamp01((t - from) / (to - from));
+		return t * t * (3.f - 2.f * t);
+	}
+
+	inline constexpr float SmootherStep(float from, float to, float t)
+	{
+		t = Clamp01(t);
+		t = t * t * t * (t * (t * 6.f - 15.f) + 10.f);
+		return from + (to - from) * t;
+	}
+
+	inline constexpr float SmootherStep01(float from, float to, float t)
+	{
+		t = Clamp01((t - from) / (to - from));
+		t = t * t * t * (t * (t * 6.f - 15.f) + 10.f);
+		return t;
 	}
 
 	inline constexpr int32_t NextPowerOfTwo(int32_t value)

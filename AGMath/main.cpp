@@ -7,10 +7,15 @@ using namespace agm;
 
 int main()
 {
-	Vector3 v;
-	v.x = Sign(-1);
-	v.y = Sign(0);
-	v.z = Sign(1);
-	cout << v.ToString();
+	float t = 0.f;
+	while (true)
+	{
+		cout << SmoothStep(0.f, 100.f, t) << endl;
+		t += 0.01f;
+		if (t >= 1.f)
+		{
+			break;
+		}
+	}
 }
 

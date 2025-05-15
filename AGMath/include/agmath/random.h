@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <array>
 #include <bit>
 #include <chrono>
@@ -15,17 +16,18 @@ namespace agm
 		{
 		public:
 			explicit Xoshiro128PlusPlus(uint32_t seed = std::chrono::high_resolution_clock::now().time_since_epoch().count())
+				: mState{}
 			{
 				SetSeed(seed);
 			}
 
 			void SetSeed(uint32_t seed)
 			{
-				uint32_t z = seed + 0x9E3779B9UL;
+				uint32_t z = seed + 0x9E3779B9u;
 				for (auto& s : mState)
 				{
-					z = (z ^ (z >> 15)) * 0x85EBCA77UL;
-					z = (z ^ (z >> 13)) * 0xC2B2AE3DUL;
+					z = (z ^ (z >> 15)) * 0x85EBCA77u;
+					z = (z ^ (z >> 13)) * 0xC2B2AE3Du;
 					s = z ^ (z >> 16);
 				}
 			}
@@ -83,7 +85,7 @@ namespace agm
 		}
 
 		uint32_t range = static_cast<uint32_t>(maxExclusive) - static_cast<uint32_t>(minInclusive);
-		uint32_t threshold = (~range + 1) % range;
+		uint32_t threshold = static_cast<uint32_t>(-static_cast<int32_t>(range)) % range;
 		uint32_t value;
 
 		do
