@@ -7,6 +7,10 @@ using namespace agm;
 
 int main()
 {
-	cout << (1e-6f > 1e-12f);
+	Vector3 v;
+	v.x = Sign(-1);
+	v.y = Sign(0);
+	v.z = Sign(1);
+	cout << v.ToString();
 }
 

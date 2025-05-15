@@ -67,7 +67,7 @@ namespace agm
 
 	inline constexpr float Sign(float value)
 	{
-		return value >= 0.f ? 1.f : -1.f;
+		return value > 0.f ? 1.f : value < 0.f ? -1.f : 0.f;
 	}
 
 	inline constexpr bool IsNearlyEqual(float a, float b, float tolerance = EPSILON)
@@ -82,6 +82,11 @@ namespace agm
 
 	inline float Repeat(float value, float length)
 	{
+		if (IsNearlyZero(length))
+		{
+			return 0.f;
+		}
+
 		return Clamp(value - std::floor(value / length) * length, 0.f, length);
 	}
 
@@ -145,24 +150,24 @@ namespace agm
 
 	inline constexpr float MoveTowards(float current, float target, float maxDelta)
 	{
-		if (IsNearlyEqual(target, current, maxDelta))
+		float delta = target - current;
+		if (Abs(delta) <= maxDelta)
 		{
 			return target;
 		}
 
-		return current + Sign(target - current) * maxDelta;
+		return current + Sign(delta) * maxDelta;
 	}
 
 	inline float MoveTowardsAngle(float current, float target, float maxDelta)
 	{
 		float delta = DeltaAngle(current, target);
-		if (0.f - maxDelta < delta && delta < maxDelta)
+		if (-maxDelta < delta && delta < maxDelta)
 		{
 			return target;
 		}
 
-		target = current + delta;
-		return MoveTowards(current, target, maxDelta);
+		return MoveTowards(current, current + delta, maxDelta);
 	}
 
 	inline constexpr float SmoothStep(float from, float to, float t)
@@ -174,6 +179,11 @@ namespace agm
 
 	inline constexpr int32_t NextPowerOfTwo(int32_t value)
 	{
+		if (value <= 0)
+		{
+			return 1;
+		}
+
 		value--;
 		value |= value >> 1;
 		value |= value >> 2;
@@ -187,6 +197,11 @@ namespace agm
 
 	inline constexpr int32_t ClosestPowerOfTwo(int32_t value)
 	{
+		if (value <= 0)
+		{
+			return 1;
+		}
+
 		int32_t nextPower = NextPowerOfTwo(value);
 		int32_t prevPower = nextPower >> 1;
 		return (value - prevPower < nextPower - value) ? prevPower : nextPower;
@@ -194,7 +209,7 @@ namespace agm
 
 	inline constexpr bool IsPowerOfTwo(int32_t value)
 	{
-		return (value & (value - 1)) == 0;
+		return (value > 0) && (value & (value - 1)) == 0;
 	}
 
 	inline constexpr bool IsEven(int32_t value)
