@@ -319,7 +319,8 @@ namespace agm
 
 		static constexpr Vector4 Project(const Vector4& a, const Vector4& b)
 		{
-			return b * (Dot(a, b) / Dot(b, b));
+			float dotB = Dot(b, b);
+			return (agm::IsNearlyZero(dotB)) ? Vector4::ZERO : b * (Dot(a, b) / dotB);
 		}
 	};
 
