@@ -190,11 +190,6 @@ namespace agm
 			return Abs(1.f - LengthSquared()) < THRESH_VECTOR_NORMALIZED;
 		}
 
-		constexpr Vector2 Perpendicular(bool clockwise = false) const
-		{
-			return clockwise ? Vector2(y, -x) : Vector2(-y, x);
-		}
-
 		Vector2 GetRotated(float angle) const
 		{
 			float radians = angle * DEG2RAD;
@@ -349,6 +344,11 @@ namespace agm
 
 			float length = std::sqrt(lengthSq);
 			return current + direction / length * maxDistanceDelta;
+		}
+
+		static constexpr Vector2 Perpendicular(const Vector2& v, bool clockwise = false)
+		{
+			return clockwise ? Vector2(v.y, -v.x) : Vector2(-v.y, v.x);
 		}
 
 		static Vector2 Project(const Vector2& v, const Vector2& onNormal)
