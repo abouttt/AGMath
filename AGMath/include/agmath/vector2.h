@@ -190,12 +190,22 @@ namespace agm
 			return Abs(1.f - LengthSquared()) < THRESH_VECTOR_NORMALIZED;
 		}
 
+		constexpr Vector2 Perpendicular(bool clockwise = false) const
+		{
+			return clockwise ? Vector2(y, -x) : Vector2(-y, x);
+		}
+
 		Vector2 GetRotated(float angle) const
 		{
 			float radians = angle * DEG2RAD;
 			float cosTheta = std::cos(radians);
 			float sinTheta = std::sin(radians);
 			return Vector2(x * cosTheta - y * sinTheta, x * sinTheta + y * cosTheta);
+		}
+
+		float GetAngle() const
+		{
+			return std::atan2(y, x) * RAD2DEG;
 		}
 
 		constexpr Vector2 GetAbs() const
@@ -296,6 +306,12 @@ namespace agm
 			return a.x * b.x + a.y * b.y;
 		}
 
+		static Vector2 FromAngle(float angle, float length = 1.f)
+		{
+			float radians = angle * DEG2RAD;
+			return Vector2(std::cos(radians), std::sin(radians)) * length;
+		}
+
 		static constexpr Vector2 Lerp(const Vector2& a, const Vector2& b, float t)
 		{
 			t = Clamp01(t);
@@ -328,16 +344,6 @@ namespace agm
 
 			float length = std::sqrt(lengthSq);
 			return current + direction / length * maxDistanceDelta;
-		}
-
-		static constexpr Vector2 Rotate90CCW(const Vector2& v)
-		{
-			return Vector2(-v.y, v.x);
-		}
-
-		static constexpr Vector2 Rotate90CW(const Vector2& v)
-		{
-			return Vector2(v.y, -v.x);
 		}
 
 		static Vector2 Project(const Vector2& v, const Vector2& onNormal)
