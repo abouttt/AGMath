@@ -203,7 +203,7 @@ namespace agm
 			return Abs(1.f - LengthSquared()) < THRESH_VECTOR_NORMALIZED;
 		}
 
-		Vector3 RotateAngleAxis(float angle, const Vector3& axis)
+		Vector3 RotateAngleAxis(float angle, const Vector3& axis) const
 		{
 			float radians = angle * DEG2RAD;
 			float cosTheta = std::cos(radians);
