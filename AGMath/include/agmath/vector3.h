@@ -334,6 +334,18 @@ namespace agm
 			return a.x * b.x + a.y * b.y + a.z * b.z;
 		}
 
+		static Vector3 FindOrthogonal(const Vector3& v)
+		{
+			if (agm::Abs(v.x) < agm::Abs(v.y) && agm::Abs(v.x) < agm::Abs(v.z))
+			{
+				return Cross(v, Vector3(1.f, 0.f, 0.f));
+			}
+			else
+			{
+				return Cross(v, Vector3(0.f, 1.f, 0.f));
+			}
+		}
+
 		static constexpr Vector3 Lerp(const Vector3& a, const Vector3& b, float t)
 		{
 			t = Clamp01(t);
@@ -411,10 +423,10 @@ namespace agm
 
 		static Vector3 RotateTowards(const Vector3& current, const Vector3& target, float maxRadiansDelta, float maxLengthDelta)
 		{
-			const float currentLength = current.Length();
-			const float targetLength = target.Length();
+			float currentLength = current.Length();
+			float targetLength = target.Length();
 
-			if (currentLength <= EPSILON || targetLength <= EPSILON)
+			if (agm::IsNearlyZero(currentLength) || agm::IsNearlyZero(targetLength))
 			{
 				return MoveTowards(current, target, maxLengthDelta);
 			}
@@ -425,7 +437,7 @@ namespace agm
 			float cosTheta = agm::Clamp(Dot(currentDirection, targetDirection), -1.f, 1.f);
 			float angle = std::acos(cosTheta);
 
-			if (angle <= EPSILON)
+			if (agm::IsNearlyZero(angle))
 			{
 				float newLength = agm::MoveTowards(currentLength, targetLength, maxLengthDelta);
 				return currentDirection * newLength;
@@ -454,7 +466,7 @@ namespace agm
 			float lengthA = a.Length();
 			float lengthB = b.Length();
 
-			if (lengthA <= EPSILON || lengthB <= EPSILON)
+			if (agm::IsNearlyZero(lengthA) || agm::IsNearlyZero(lengthB))
 			{
 				return LerpUnclamped(a, b, t);
 			}
@@ -463,9 +475,18 @@ namespace agm
 			Vector3 unitB = b / lengthB;
 
 			float dot = agm::Clamp(Dot(unitA, unitB), -1.f, 1.f);
-			float theta = std::acos(dot) * t;
+			if (agm::IsNearlyEqual(dot, 1.f))
+			{
+				return LerpUnclamped(a, b, t);
+			}
 
 			Vector3 relative = (unitB - unitA * dot).GetNormalized();
+			if (agm::IsNearlyZero(relative.LengthSquared()))
+			{
+				return LerpUnclamped(a, b, t);
+			}
+
+			float theta = std::acos(dot) * t;
 			Vector3 direction = unitA * std::cos(theta) + relative * std::sin(theta);
 			float length = agm::LerpUnclamped(lengthA, lengthB, t);
 
