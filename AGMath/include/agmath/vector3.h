@@ -324,6 +324,11 @@ namespace agm
 			return (a - b).Length();
 		}
 
+		static constexpr float DistanceSquared(const Vector3& a, const Vector3& b)
+		{
+			return (a - b).LengthSquared();
+		}
+
 		static constexpr float Dot(const Vector3& a, const Vector3& b)
 		{
 			return a.x * b.x + a.y * b.y + a.z * b.z;
