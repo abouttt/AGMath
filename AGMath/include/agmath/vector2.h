@@ -330,9 +330,14 @@ namespace agm
 			return current + direction / length * maxDistanceDelta;
 		}
 
-		static constexpr Vector2 Perpendicular(const Vector2& v)
+		static constexpr Vector2 Rotate90CCW(const Vector2& v)
 		{
 			return Vector2(-v.y, v.x);
+		}
+
+		static constexpr Vector2 Rotate90CW(const Vector2& v)
+		{
+			return Vector2(v.y, -v.x);
 		}
 
 		static Vector2 Project(const Vector2& v, const Vector2& onNormal)
