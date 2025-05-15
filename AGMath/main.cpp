@@ -7,6 +7,6 @@ using namespace agm;
 
 int main()
 {
-
+	cout << Clamp(10, 5, 4);
 }
 

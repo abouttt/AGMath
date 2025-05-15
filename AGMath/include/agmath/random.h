@@ -16,7 +16,6 @@ namespace agm
 		{
 		public:
 			explicit Xoshiro128PlusPlus(uint32_t seed = std::chrono::high_resolution_clock::now().time_since_epoch().count())
-				: mState{}
 			{
 				SetSeed(seed);
 			}
@@ -48,7 +47,7 @@ namespace agm
 			}
 
 		private:
-			std::array<uint32_t, 4> mState;
+			std::array<uint32_t, 4> mState{};
 		};
 
 		inline Xoshiro128PlusPlus& GetRNG()
@@ -70,7 +69,7 @@ namespace agm
 
 	inline float Rand01()
 	{
-		return static_cast<float>(Rand()) / UINT32_MAX;
+		return static_cast<float>(Rand()) / static_cast<float>(std::numeric_limits<uint32_t>::max());
 	}
 
 	inline int32_t RandRange(int32_t minInclusive, int32_t maxExclusive)
@@ -119,8 +118,14 @@ namespace agm
 
 	inline float RandNormal(float mean = 0.f, float stddev = 1.f)
 	{
-		float u1 = Rand01();
-		float u2 = Rand01();
+		float u1, u2;
+
+		do
+		{
+			u1 = Rand01();
+			u2 = Rand01();
+		} while (u1 <= EPSILON);
+
 		float z0 = std::sqrt(-2.f * std::log(u1)) * std::cos(TWO_PI * u2);
 		return z0 * stddev + mean;
 	}

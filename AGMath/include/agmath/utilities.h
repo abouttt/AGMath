@@ -194,8 +194,7 @@ namespace agm
 	inline constexpr float SmootherStep01(float from, float to, float t)
 	{
 		t = Clamp01((t - from) / (to - from));
-		t = t * t * t * (t * (t * 6.f - 15.f) + 10.f);
-		return t;
+		return t * t * t * (t * (t * 6.f - 15.f) + 10.f);
 	}
 
 	inline constexpr int32_t NextPowerOfTwo(int32_t value)
