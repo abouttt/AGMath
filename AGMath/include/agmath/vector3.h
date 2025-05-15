@@ -338,11 +338,11 @@ namespace agm
 		{
 			if (agm::Abs(v.x) < agm::Abs(v.y) && agm::Abs(v.x) < agm::Abs(v.z))
 			{
-				return Cross(v, Vector3(1.f, 0.f, 0.f));
+				return Cross(v, Vector3::RIGHT);
 			}
 			else
 			{
-				return Cross(v, Vector3(0.f, 1.f, 0.f));
+				return Cross(v, Vector3::UP);
 			}
 		}
 
