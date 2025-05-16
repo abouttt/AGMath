@@ -141,7 +141,14 @@ namespace agm
 
 		constexpr Quaternion& operator*=(const Quaternion& other)
 		{
-			*this = (*this) * other;
+			float newX = w * other.x + x * other.w + y * other.z - z * other.y;
+			float newY = w * other.y - x * other.z + y * other.w + z * other.x;
+			float newZ = w * other.z + x * other.y - y * other.x + z * other.w;
+			float newW = w * other.w - x * other.x - y * other.y - z * other.z;
+			x = newX;
+			y = newY;
+			z = newZ;
+			w = newW;
 			return *this;
 		}
 
@@ -330,7 +337,7 @@ namespace agm
 				return Quaternion::IDENTITY;
 			}
 
-			Vector3 normalizedAxis = axis.GetNormalized(EPSILON);
+			Vector3 normalizedAxis = axis.GetNormalized();
 			float halfRad = angle * DEG2RAD * 0.5f;
 			float s = std::sin(halfRad);
 			float c = std::cos(halfRad);
@@ -364,20 +371,20 @@ namespace agm
 
 		static Quaternion FromToRotation(const Vector3& fromDirection, const Vector3& toDirection)
 		{
-			Vector3 v0 = fromDirection.GetNormalized();
-			Vector3 v1 = toDirection.GetNormalized();
+			Vector3 fn = fromDirection.GetNormalized();
+			Vector3 tn = toDirection.GetNormalized();
 
-			float dot = Vector3::Dot(v0, v1);
+			float dot = Vector3::Dot(fn, tn);
 			if (dot >= 1.f - EPSILON)
 			{
 				return Quaternion::IDENTITY;
 			}
 			else if (dot <= -1.f + EPSILON)
 			{
-				Vector3 axis = Vector3::Cross(Vector3::RIGHT, v0);
+				Vector3 axis = Vector3::Cross(Vector3::RIGHT, fn);
 				if (axis.LengthSquared() <= EPSILON)
 				{
-					axis = Vector3::Cross(Vector3::UP, v0);
+					axis = Vector3::Cross(Vector3::UP, fn);
 				}
 
 				return AngleAxis(180.f, axis);
@@ -385,7 +392,7 @@ namespace agm
 
 			float s = std::sqrt((1.f + dot) * 2.f);
 			float invS = 1.f / s;
-			Vector3 c = Vector3::Cross(v0, v1);
+			Vector3 c = Vector3::Cross(fn, tn);
 
 			return Quaternion(c.x * invS, c.y * invS, c.z * invS, s * 0.5f).GetNormalized();
 		}
@@ -408,7 +415,8 @@ namespace agm
 
 		static Quaternion Lerp(const Quaternion& a, const Quaternion& b, float t)
 		{
-			t = Clamp01(t); return LerpUnclamped(a, b, t);
+			t = Clamp01(t);
+			return LerpUnclamped(a, b, t);
 		}
 
 		static Quaternion LerpUnclamped(const Quaternion& a, const Quaternion& b, float t)
