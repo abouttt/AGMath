@@ -42,7 +42,7 @@ namespace agm
 
 	public:
 
-		constexpr float operator[](int32_t index) const
+		float operator[](int32_t index) const
 		{
 			switch (index)
 			{
@@ -52,7 +52,7 @@ namespace agm
 			}
 		}
 
-		constexpr float& operator[](int32_t index)
+		float& operator[](int32_t index)
 		{
 			switch (index)
 			{
@@ -279,8 +279,7 @@ namespace agm
 			if (lengthSq > maxLength * maxLength)
 			{
 				float length = std::sqrt(lengthSq);
-				Vector2 unit = v / length;
-				return unit * maxLength;
+				return v * (maxLength / length);
 			}
 
 			return v;
@@ -353,14 +352,13 @@ namespace agm
 
 		static Vector2 Project(const Vector2& v, const Vector2& onNormal)
 		{
-			float dot = Dot(v, onNormal);
-			float denom = onNormal.LengthSquared();
-			if (agm::IsNearlyZero(denom))
+			float normalLengthSq = onNormal.LengthSquared();
+			if (agm::IsNearlyZero(normalLengthSq))
 			{
 				return Vector2::ZERO;
 			}
 
-			return (dot / denom) * onNormal;
+			return (Dot(v, onNormal) / normalLengthSq) * onNormal;
 		}
 
 		static constexpr Vector2 Reflect(const Vector2& inDirection, const Vector2& inNormal)
@@ -370,7 +368,9 @@ namespace agm
 
 		static float SignedAngle(const Vector2& from, const Vector2& to)
 		{
-			return Angle(from, to) * Sign(from.x * to.y - from.y * to.x);
+			float angle = Angle(from, to);
+			float sign = Sign(from.x * to.y - from.y * to.x);
+			return angle * sign;
 		}
 	};
 

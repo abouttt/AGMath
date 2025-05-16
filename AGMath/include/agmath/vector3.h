@@ -47,7 +47,7 @@ namespace agm
 
 	public:
 
-		constexpr float operator[](int32_t index) const
+		float operator[](int32_t index) const
 		{
 			switch (index)
 			{
@@ -58,7 +58,7 @@ namespace agm
 			}
 		}
 
-		constexpr float& operator[](int32_t index)
+		float& operator[](int32_t index)
 		{
 			switch (index)
 			{
@@ -307,8 +307,7 @@ namespace agm
 			if (lengthSq > maxLength * maxLength)
 			{
 				float length = std::sqrt(lengthSq);
-				Vector3 unit = v / length;
-				return unit * maxLength;
+				return v * (maxLength / length);
 			}
 
 			return v;
@@ -338,11 +337,11 @@ namespace agm
 		{
 			if (agm::Abs(v.x) < agm::Abs(v.y) && agm::Abs(v.x) < agm::Abs(v.z))
 			{
-				return Cross(v, Vector3::RIGHT);
+				return Cross(v, Vector3::RIGHT).GetNormalized();
 			}
 			else
 			{
-				return Cross(v, Vector3::UP);
+				return Cross(v, Vector3::UP).GetNormalized();
 			}
 		}
 
