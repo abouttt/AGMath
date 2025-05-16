@@ -44,7 +44,7 @@ namespace agm
 
 	public:
 
-		constexpr float operator[](int32_t index) const
+		float operator[](int32_t index) const
 		{
 			switch (index)
 			{
@@ -56,7 +56,7 @@ namespace agm
 			}
 		}
 
-		constexpr float& operator[](int32_t index)
+		float& operator[](int32_t index)
 		{
 			switch (index)
 			{
