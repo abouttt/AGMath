@@ -113,7 +113,46 @@ namespace agm
 
 		constexpr Matrix4x4& operator*=(const Matrix4x4& other)
 		{
-			*this = (*this) * other;
+			float new00 = m00 * other.m00 + m01 * other.m10 + m02 * other.m20 + m03 * other.m30;
+			float new01 = m00 * other.m01 + m01 * other.m11 + m02 * other.m21 + m03 * other.m31;
+			float new02 = m00 * other.m02 + m01 * other.m12 + m02 * other.m22 + m03 * other.m32;
+			float new03 = m00 * other.m03 + m01 * other.m13 + m02 * other.m23 + m03 * other.m33;
+
+			float new10 = m10 * other.m00 + m11 * other.m10 + m12 * other.m20 + m13 * other.m30;
+			float new11 = m10 * other.m01 + m11 * other.m11 + m12 * other.m21 + m13 * other.m31;
+			float new12 = m10 * other.m02 + m11 * other.m12 + m12 * other.m22 + m13 * other.m32;
+			float new13 = m10 * other.m03 + m11 * other.m13 + m12 * other.m23 + m13 * other.m33;
+
+			float new20 = m20 * other.m00 + m21 * other.m10 + m22 * other.m20 + m23 * other.m30;
+			float new21 = m20 * other.m01 + m21 * other.m11 + m22 * other.m21 + m23 * other.m31;
+			float new22 = m20 * other.m02 + m21 * other.m12 + m22 * other.m22 + m23 * other.m32;
+			float new23 = m20 * other.m03 + m21 * other.m13 + m22 * other.m23 + m23 * other.m33;
+
+			float new30 = m30 * other.m00 + m31 * other.m10 + m32 * other.m20 + m33 * other.m30;
+			float new31 = m30 * other.m01 + m31 * other.m11 + m32 * other.m21 + m33 * other.m31;
+			float new32 = m30 * other.m02 + m31 * other.m12 + m32 * other.m22 + m33 * other.m32;
+			float new33 = m30 * other.m03 + m31 * other.m13 + m32 * other.m23 + m33 * other.m33;
+
+			m00 = new00;
+			m01 = new01;
+			m02 = new02;
+			m03 = new03;
+
+			m10 = new10;
+			m11 = new11;
+			m12 = new12;
+			m13 = new13;
+
+			m20 = new20;
+			m21 = new21;
+			m22 = new22;
+			m23 = new23;
+
+			m30 = new30;
+			m31 = new31;
+			m32 = new32;
+			m33 = new33;
+
 			return *this;
 		}
 
@@ -322,14 +361,10 @@ namespace agm
 
 		Vector3 GetScale() const
 		{
-			Vector4 col0 = GetColumn(0);
-			Vector4 col1 = GetColumn(1);
-			Vector4 col2 = GetColumn(2);
-
 			return Vector3(
-				Vector3(col0.x, col0.y, col0.z).Length(),
-				Vector3(col1.x, col1.y, col1.z).Length(),
-				Vector3(col2.x, col2.y, col2.z).Length()
+				Vector3(m00, m10, m20).Length(),
+				Vector3(m01, m11, m21).Length(),
+				Vector3(m02, m12, m22).Length()
 			);
 		}
 
