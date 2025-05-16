@@ -1,6 +1,7 @@
 #pragma once
 
 #include "conversion.h"
+#include "easing.h"
 #include "random.h"
 #include "utilities.h"
 #include "vector2.h"

@@ -43,5 +43,8 @@
     <ClInclude Include="include\agmath\conversion.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\agmath\easing.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
