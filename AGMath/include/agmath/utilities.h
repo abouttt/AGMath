@@ -142,14 +142,15 @@ namespace agm
 
 	inline float LerpAngle(float a, float b, float t)
 	{
-		return a + DeltaAngle(a, b) * Clamp01(t);
+		float delta = DeltaAngle(a, b);
+		return WrapAngle(a + delta * Clamp01(t));
 	}
 
 	inline constexpr float InverseLerp(float a, float b, float value)
 	{
 		if (IsNearlyEqual(a, b))
 		{
-			return 0.f;
+			return value <= a ? 0.f : 1.f;
 		}
 
 		return Clamp01((value - a) / (b - a));
@@ -177,10 +178,10 @@ namespace agm
 		float delta = DeltaAngle(current, target);
 		if (Abs(delta) <= maxDelta)
 		{
-			return target;
+			return WrapAngle(target);
 		}
 
-		return MoveTowards(current, current + delta, maxDelta);
+		return WrapAngle(current + Sign(delta) * maxDelta);
 	}
 
 	inline constexpr float SmoothStep(float from, float to, float t)
@@ -190,10 +191,22 @@ namespace agm
 		return from + (to - from) * t;
 	}
 
-	inline constexpr float SmoothStep01(float from, float to, float t)
+	inline constexpr float SmoothStep01(float from, float to, float value)
 	{
-		t = Clamp01((t - from) / (to - from));
-		return t * t * (3.f - 2.f * t);
+		float t;
+
+		if (IsNearlyEqual(from, to))
+		{
+			t = value <= from ? 0.f : 1.f;
+		}
+		else
+		{
+			t = (value - from) / (to - from);
+		}
+
+		t = Clamp01(t);
+		t = t * t * (3.f - 2.f * t);
+		return t;
 	}
 
 	inline constexpr float SmootherStep(float from, float to, float t)
@@ -203,10 +216,22 @@ namespace agm
 		return from + (to - from) * t;
 	}
 
-	inline constexpr float SmootherStep01(float from, float to, float t)
+	inline constexpr float SmootherStep01(float from, float to, float value)
 	{
-		t = Clamp01((t - from) / (to - from));
-		return t * t * t * (t * (t * 6.f - 15.f) + 10.f);
+		float t;
+
+		if (IsNearlyEqual(from, to))
+		{
+			t = value <= from ? 0.f : 1.f;
+		}
+		else
+		{
+			t = (value - from) / (to - from);
+		}
+
+		t = Clamp01(t);
+		t = t * t * t * (t * (t * 6.f - 15.f) + 10.f);
+		return t;
 	}
 
 	inline constexpr int32_t NextPowerOfTwo(int32_t value)
@@ -234,9 +259,14 @@ namespace agm
 			return 1;
 		}
 
-		int32_t nextPower = NextPowerOfTwo(value);
-		int32_t prevPower = nextPower >> 1;
-		return (value - prevPower < nextPower - value) ? prevPower : nextPower;
+		int32_t next = NextPowerOfTwo(value);
+		int32_t prev = next >> 1;
+		if (prev == 0)
+		{
+			return next;
+		}
+
+		return (value - prev < next - value) ? prev : next;
 	}
 
 	inline constexpr bool IsPowerOfTwo(int32_t value)
