@@ -190,19 +190,6 @@ namespace agm
 			return Abs(1.f - LengthSquared()) < THRESH_VECTOR_NORMALIZED;
 		}
 
-		Vector2 GetRotated(float angle) const
-		{
-			float radians = angle * DEG2RAD;
-			float cosTheta = std::cos(radians);
-			float sinTheta = std::sin(radians);
-			return Vector2(x * cosTheta - y * sinTheta, x * sinTheta + y * cosTheta);
-		}
-
-		float GetAngle() const
-		{
-			return std::atan2(y, x) * RAD2DEG;
-		}
-
 		constexpr Vector2 GetAbs() const
 		{
 			return Vector2(Abs(x), Abs(y));
