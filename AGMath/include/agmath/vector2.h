@@ -258,14 +258,14 @@ namespace agm
 
 		static float Angle(const Vector2& from, const Vector2& to)
 		{
-			float length = std::sqrt(from.LengthSquared() * to.LengthSquared());
-			if (agm::IsNearlyZero(length))
+			float denominator = std::sqrt(from.LengthSquared() * to.LengthSquared());
+			if (agm::IsNearlyZero(denominator))
 			{
 				return 0.f;
 			}
 
-			float cosTheta = agm::Clamp(Dot(from, to) / length, -1.f, 1.f);
-			return std::acos(cosTheta) * RAD2DEG;
+			float cosTheta = Dot(from, to) / denominator;
+			return std::acos(agm::Clamp(cosTheta, -1.f, 1.f)) * agm::RAD2DEG;
 		}
 
 		static Vector2 Clamp(const Vector2& v, const Vector2& min, const Vector2& max)
@@ -334,15 +334,15 @@ namespace agm
 
 		static Vector2 MoveTowards(const Vector2& current, const Vector2& target, float maxDistanceDelta)
 		{
-			Vector2 direction = target - current;
-			float lengthSq = direction.LengthSquared();
+			Vector2 delta = target - current;
+			float lengthSq = delta.LengthSquared();
 			if (agm::IsNearlyZero(lengthSq) || (maxDistanceDelta >= 0.f && lengthSq <= maxDistanceDelta * maxDistanceDelta))
 			{
 				return target;
 			}
 
 			float length = std::sqrt(lengthSq);
-			return current + direction / length * maxDistanceDelta;
+			return current + delta / length * maxDistanceDelta;
 		}
 
 		static constexpr Vector2 Perpendicular(const Vector2& v, bool clockwise = false)
@@ -350,7 +350,7 @@ namespace agm
 			return clockwise ? Vector2(v.y, -v.x) : Vector2(-v.y, v.x);
 		}
 
-		static Vector2 Project(const Vector2& v, const Vector2& onNormal)
+		static constexpr Vector2 Project(const Vector2& v, const Vector2& onNormal)
 		{
 			float normalLengthSq = onNormal.LengthSquared();
 			if (agm::IsNearlyZero(normalLengthSq))

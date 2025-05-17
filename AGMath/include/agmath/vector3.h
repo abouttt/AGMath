@@ -203,33 +203,6 @@ namespace agm
 			return Abs(1.f - LengthSquared()) < THRESH_VECTOR_NORMALIZED;
 		}
 
-		Vector3 RotateAngleAxis(float angle, const Vector3& axis) const
-		{
-			float radians = angle * DEG2RAD;
-			float cosTheta = std::cos(radians);
-			float sinTheta = std::sin(radians);
-
-			float xx = axis.x * axis.x;
-			float yy = axis.y * axis.y;
-			float zz = axis.z * axis.z;
-
-			float xy = axis.x * axis.y;
-			float yz = axis.y * axis.z;
-			float zx = axis.z * axis.x;
-
-			float xs = axis.x * sinTheta;
-			float ys = axis.y * sinTheta;
-			float zs = axis.z * sinTheta;
-
-			float omc = 1.f - cosTheta;
-
-			return Vector3(
-				(omc * xx + cosTheta) * x + (omc * xy - zs) * y + (omc * zx + ys) * z,
-				(omc * xy + zs) * x + (omc * yy + cosTheta) * y + (omc * yz - xs) * z,
-				(omc * zx - ys) * x + (omc * yz + xs) * y + (omc * zz + cosTheta) * z
-			);
-		}
-
 		constexpr Vector3 GetAbs() const
 		{
 			return Vector3(Abs(x), Abs(y), Abs(z));
@@ -286,14 +259,14 @@ namespace agm
 
 		static float Angle(const Vector3& from, const Vector3& to)
 		{
-			float length = std::sqrt(from.LengthSquared() * to.LengthSquared());
-			if (agm::IsNearlyZero(length))
+			float denominator = std::sqrt(from.LengthSquared() * to.LengthSquared());
+			if (agm::IsNearlyZero(denominator))
 			{
 				return 0.f;
 			}
 
-			float cosTheta = agm::Clamp(Dot(from, to) / length, -1.f, 1.f);
-			return std::acos(cosTheta) * RAD2DEG;
+			float cosTheta = Dot(from, to) / denominator;
+			return std::acos(agm::Clamp(cosTheta, -1.f, 1.f)) * agm::RAD2DEG;
 		}
 
 		static Vector3 Clamp(const Vector3& v, const Vector3& min, const Vector3& max)
@@ -368,15 +341,15 @@ namespace agm
 
 		static Vector3 MoveTowards(const Vector3& current, const Vector3& target, float maxDistanceDelta)
 		{
-			Vector3 direction = target - current;
-			float lengthSq = direction.LengthSquared();
+			Vector3 delta = target - current;
+			float lengthSq = delta.LengthSquared();
 			if (agm::IsNearlyZero(lengthSq) || (maxDistanceDelta >= 0.f && lengthSq <= maxDistanceDelta * maxDistanceDelta))
 			{
 				return target;
 			}
 
 			float length = std::sqrt(lengthSq);
-			return current + direction / length * maxDistanceDelta;
+			return current + delta / length * maxDistanceDelta;
 		}
 
 		static void OrthoNormalize(Vector3& inoutNormal, Vector3& inoutTangent)
@@ -424,7 +397,6 @@ namespace agm
 		{
 			float currentLength = current.Length();
 			float targetLength = target.Length();
-
 			if (agm::IsNearlyZero(currentLength) || agm::IsNearlyZero(targetLength))
 			{
 				return MoveTowards(current, target, maxLengthDelta);
@@ -432,10 +404,8 @@ namespace agm
 
 			Vector3 currentDirection = current / currentLength;
 			Vector3 targetDirection = target / targetLength;
-
 			float cosTheta = agm::Clamp(Dot(currentDirection, targetDirection), -1.f, 1.f);
 			float angle = std::acos(cosTheta);
-
 			if (agm::IsNearlyZero(angle))
 			{
 				float newLength = agm::MoveTowards(currentLength, targetLength, maxLengthDelta);
@@ -443,10 +413,11 @@ namespace agm
 			}
 
 			float t = agm::Min(1.f, maxRadiansDelta / angle);
-			Vector3 newDirection = SlerpUnclamped(currentDirection, targetDirection, t);
-			float newLength = agm::MoveTowards(currentLength, targetLength, maxLengthDelta);
+			Vector3 relative = (targetDirection - currentDirection * cosTheta).GetNormalized();
+			Vector3 direction = currentDirection * std::cos(t * angle) + relative * std::sin(t * angle);
+			float length = agm::MoveTowards(currentLength, targetLength, maxLengthDelta);
 
-			return newDirection * newLength;
+			return direction * length;
 		}
 
 		static float SignedAngle(const Vector3& from, const Vector3& to, const Vector3& axis)
