@@ -465,11 +465,6 @@ namespace agm
 			return Abs(dot01) <= EPSILON && Abs(dot02) <= EPSILON && Abs(dot12) <= EPSILON;
 		}
 
-		constexpr bool IsIdentity(float tolerance = EPSILON) const
-		{
-			return Equals(IDENTITY, tolerance);
-		}
-
 		constexpr bool Equals(const Matrix4x4& other, float tolerance = EPSILON) const
 		{
 			for (size_t i = 0; i < 16; i++)
@@ -646,7 +641,7 @@ namespace agm
 
 		static Matrix4x4 Translate(const Vector3& v)
 		{
-			Matrix4x4 result = IDENTITY;
+			Matrix4x4 result = Matrix4x4::IDENTITY;
 
 			result.m03 = v.x;
 			result.m13 = v.y;
