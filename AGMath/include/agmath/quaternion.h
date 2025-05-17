@@ -145,10 +145,12 @@ namespace agm
 			float newY = w * other.y - x * other.z + y * other.w + z * other.x;
 			float newZ = w * other.z + x * other.y - y * other.x + z * other.w;
 			float newW = w * other.w - x * other.x - y * other.y - z * other.z;
+
 			x = newX;
 			y = newY;
 			z = newZ;
 			w = newW;
+
 			return *this;
 		}
 
@@ -220,12 +222,7 @@ namespace agm
 
 			for (int32_t i = 0; i < 3; i++)
 			{
-				float& angle = euler[i];
-				angle = std::fmod(angle, 360.f);
-				if (angle < 0.f)
-				{
-					angle += 360.f;
-				}
+				euler[i] = WrapAngle(euler[i]);
 			}
 
 			return euler;
@@ -254,6 +251,20 @@ namespace agm
 			}
 		}
 
+		constexpr Vector3 RotateVector3(const Vector3& v) const
+		{
+			Vector3 qv(x, y, z);
+			Vector3 t = Vector3::Cross(qv, v) * 2.f;
+			return v + (t * w) + Vector3::Cross(qv, t);
+		}
+
+		constexpr Vector3 UnrotateVector3(const Vector3& v) const
+		{
+			Vector3 qv(-x, -y, -z);
+			Vector3 t = Vector3::Cross(qv, v) * 2.f;
+			return v + (t * w) + Vector3::Cross(qv, t);
+		}
+
 		constexpr Vector3 GetAxisX() const
 		{
 			return RotateVector3(Vector3::RIGHT);
@@ -269,20 +280,6 @@ namespace agm
 			return RotateVector3(Vector3::FORWARD);
 		}
 
-		constexpr Vector3 RotateVector3(const Vector3& v) const
-		{
-			Vector3 qv(x, y, z);
-			Vector3 t = Vector3::Cross(qv, v) * 2.f;
-			return v + (t * w) + Vector3::Cross(qv, t);
-		}
-
-		constexpr Vector3 UnrotateVector3(const Vector3& v) const
-		{
-			Vector3 qv(-x, -y, -z);
-			Vector3 t = Vector3::Cross(qv, v) * 2.f;
-			return v + (t * w) + Vector3::Cross(qv, t);
-		}
-
 		void SetEulerAngles(const Vector3& euler)
 		{
 			*this = Euler(euler.x, euler.y, euler.z);
@@ -296,11 +293,6 @@ namespace agm
 		void SetLookRotation(const Vector3& view, const Vector3& up = Vector3::UP)
 		{
 			*this = LookRotation(view, up);
-		}
-
-		constexpr bool IsIdentity(float tolerance = EPSILON) const
-		{
-			return Equals(Quaternion::IDENTITY, tolerance);
 		}
 
 		constexpr void Set(float x, float y, float z, float w)
@@ -405,7 +397,8 @@ namespace agm
 			{
 				return Conjugate(q);
 			}
-			else if (lengthSq <= EPSILON)
+
+			if (lengthSq <= EPSILON)
 			{
 				return Quaternion::IDENTITY;
 			}
@@ -554,6 +547,7 @@ namespace agm
 			Quaternion bn = b.GetNormalized();
 
 			float cosHalfTheta = Dot(an, bn);
+
 			if (cosHalfTheta < 0.f)
 			{
 				bn = -bn;
