@@ -85,8 +85,8 @@ namespace agm
 
 		constexpr float p = 0.3f;
 		constexpr float s = p / 4.f;
-		float t_adj = t - 1.f;
-		return -std::pow(2.f, 10.f * t_adj) * std::sin((t_adj - s) * TWO_PI / p);
+		float tAdj = t - 1.f;
+		return -std::pow(2.f, 10.f * tAdj) * std::sin((tAdj - s) * TWO_PI / p);
 	}
 
 	//
@@ -293,15 +293,15 @@ namespace agm
 		}
 
 		constexpr float p = 0.3f * 1.5f;
-		const float scaled_time_phase = (20.f * t) - 11.125f;
+		const float scaledTimePhase = (20.f * t) - 11.125f;
 
 		if (t < 0.5f)
 		{
-			return -0.5f * (std::pow(2.f, 20.f * t - 10.f) * std::sin(scaled_time_phase * TWO_PI / p));
+			return -0.5f * (std::pow(2.f, 20.f * t - 10.f) * std::sin(scaledTimePhase * TWO_PI / p));
 		}
 		else
 		{
-			return std::pow(2.f, -20.f * t + 10.f) * std::sin(scaled_time_phase * TWO_PI / p) * 0.5f + 1.f;
+			return std::pow(2.f, -20.f * t + 10.f) * std::sin(scaledTimePhase * TWO_PI / p) * 0.5f + 1.f;
 		}
 	}
 
@@ -323,18 +323,18 @@ namespace agm
 		}
 		else if (t < 2.f / d1)
 		{
-			float t_adj = t - (1.5f / d1);
-			return n1 * t_adj * t_adj + 0.75f;
+			float tAdj = t - (1.5f / d1);
+			return n1 * tAdj * tAdj + 0.75f;
 		}
 		else if (t < 2.5f / d1)
 		{
-			float t_adj = t - (2.25f / d1);
-			return n1 * t_adj * t_adj + 0.9375f;
+			float tAdj = t - (2.25f / d1);
+			return n1 * tAdj * tAdj + 0.9375f;
 		}
 		else
 		{
-			float t_adj = t - (2.625f / d1);
-			return n1 * t_adj * t_adj + 0.984375f;
+			float tAdj = t - (2.625f / d1);
+			return n1 * tAdj * tAdj + 0.984375f;
 		}
 	}
 
