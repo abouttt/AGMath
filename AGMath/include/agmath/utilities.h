@@ -119,11 +119,6 @@ namespace agm
 		return WrapAngle(target - current);
 	}
 
-	inline float AngleBetween(float a, float b)
-	{
-		return Abs(WrapAngle(b - a));
-	}
-
 	inline constexpr float Lerp(float a, float b, float t)
 	{
 		return a + (b - a) * Clamp01(t);
