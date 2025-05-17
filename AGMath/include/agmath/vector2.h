@@ -190,19 +190,6 @@ namespace agm
 			return Abs(1.f - LengthSquared()) < THRESH_VECTOR_NORMALIZED;
 		}
 
-		Vector2 GetRotated(float angle) const
-		{
-			float radians = angle * DEG2RAD;
-			float cosTheta = std::cos(radians);
-			float sinTheta = std::sin(radians);
-			return Vector2(x * cosTheta - y * sinTheta, x * sinTheta + y * cosTheta);
-		}
-
-		float GetAngle() const
-		{
-			return std::atan2(y, x) * RAD2DEG;
-		}
-
 		constexpr Vector2 GetAbs() const
 		{
 			return Vector2(Abs(x), Abs(y));
@@ -303,12 +290,6 @@ namespace agm
 		static constexpr float Dot(const Vector2& a, const Vector2& b)
 		{
 			return a.x * b.x + a.y * b.y;
-		}
-
-		static Vector2 FromAngle(float angle, float length = 1.f)
-		{
-			float radians = angle * DEG2RAD;
-			return Vector2(std::cos(radians), std::sin(radians)) * length;
 		}
 
 		static constexpr Vector2 Lerp(const Vector2& a, const Vector2& b, float t)
