@@ -352,18 +352,18 @@ namespace agm
 			return current + delta / length * maxDistanceDelta;
 		}
 
-		static void OrthoNormalize(Vector3& inoutNormal, Vector3& inoutTangent)
+		static void OrthoNormalize(Vector3& normal, Vector3& tangent)
 		{
-			inoutNormal.Normalize();
-			inoutTangent = ProjectOnPlane(inoutTangent, inoutNormal);
-			inoutTangent.Normalize();
+			normal.Normalize();
+			tangent = ProjectOnPlane(tangent, normal);
+			tangent.Normalize();
 		}
 
-		static void OrthoNormalize(Vector3& inoutNormal, Vector3& inoutTangent, Vector3& inoutBinormal)
+		static void OrthoNormalize(Vector3& normal, Vector3& tangent, Vector3& binormal)
 		{
-			OrthoNormalize(inoutNormal, inoutTangent);
-			inoutBinormal = Cross(inoutNormal, inoutTangent);
-			inoutBinormal.Normalize();
+			OrthoNormalize(normal, tangent);
+			binormal = Cross(normal, tangent);
+			binormal.Normalize();
 		}
 
 		static constexpr Vector3 Project(const Vector3& v, const Vector3& onNormal)

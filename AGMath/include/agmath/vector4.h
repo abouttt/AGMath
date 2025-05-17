@@ -306,15 +306,15 @@ namespace agm
 
 		static Vector4 MoveTowards(const Vector4& current, const Vector4& target, float maxDistanceDelta)
 		{
-			Vector4 direction = target - current;
-			float lengthSq = direction.LengthSquared();
+			Vector4 delta = target - current;
+			float lengthSq = delta.LengthSquared();
 			if (agm::IsNearlyZero(lengthSq) || (maxDistanceDelta >= 0.f && lengthSq <= maxDistanceDelta * maxDistanceDelta))
 			{
 				return target;
 			}
 
 			float length = std::sqrt(lengthSq);
-			return current + direction / length * maxDistanceDelta;
+			return current + delta / length * maxDistanceDelta;
 		}
 
 		static constexpr Vector4 Project(const Vector4& a, const Vector4& b)
