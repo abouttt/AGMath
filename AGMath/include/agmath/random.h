@@ -7,6 +7,7 @@
 #include <cstdint>
 #include <cmath>
 #include <limits>
+#include <random>
 
 #include "utilities.h"
 
@@ -29,20 +30,20 @@ namespace agm
 
 			void SetSeed(uint64_t seed)
 			{
-				uint64_t z = seed + 0x9E3779B97F4A7C15ULL;
-				for (int i = 0; i < 4; ++i)
+				std::seed_seq seq
 				{
-					z = (z ^ (z >> 30)) * 0xBF58476D1CE4E5B9ULL;
-					z = (z ^ (z >> 27)) * 0x94D049BB133111EBULL;
-					mState[i] = static_cast<uint32_t>((z ^ (z >> 31)) >> (i % 2 * 32));
-				}
+					static_cast<uint32_t>(seed),
+					static_cast<uint32_t>(seed >> 32),
+					0x9E3779B9U,
+					0x85EBCA6BU,
+					0xC2B2AE35U
+				};
 
-				if (mState[0] == 0 && mState[1] == 0 && mState[2] == 0 && mState[3] == 0)
+				seq.generate(mState.begin(), mState.end());
+
+				if (std::all_of(mState.begin(), mState.end(), [](uint32_t x) { return x == 0; }))
 				{
-					mState[0] = 0xBAD5EED1;
-					mState[1] = 0xBAD5EED2;
-					mState[2] = 0xBAD5EED3;
-					mState[3] = 0xBAD5EED4;
+					mState = { 0xBAD5EED1, 0xBAD5EED2, 0xBAD5EED3, 0xBAD5EED4 };
 				}
 			}
 
@@ -59,6 +60,16 @@ namespace agm
 				mState[3] = std::rotl(mState[3], 11);
 
 				return result;
+			}
+
+			std::array<uint32_t, 4> GetState() const
+			{
+				return mState;
+			}
+
+			void SetState(const std::array<uint32_t, 4>& state)
+			{
+				mState = state;
 			}
 
 		private:
@@ -89,6 +100,16 @@ namespace agm
 		detail::GetRNG().SetSeed(seed);
 	}
 
+	inline auto GetSeedState()
+	{
+		return detail::GetRNG().GetState();
+	}
+
+	inline void RestoreSeedState(const std::array<uint32_t, 4>& state)
+	{
+		detail::GetRNG().SetState(state);
+	}
+
 	inline uint32_t Rand()
 	{
 		return detail::GetRNG().Next();
@@ -111,12 +132,7 @@ namespace agm
 			std::swap(minInclusive, maxExclusive);
 		}
 
-		uint32_t range = static_cast<uint32_t>(maxExclusive) - static_cast<uint32_t>(minInclusive);
-		if (range == 0)
-		{
-			return minInclusive;
-		}
-
+		uint32_t range = static_cast<uint32_t>(maxExclusive - minInclusive);
 		uint32_t limit = (std::numeric_limits<uint32_t>::max() / range) * range;
 		uint32_t value;
 		do
@@ -140,17 +156,7 @@ namespace agm
 	inline bool RandBool(float probability = 0.5f)
 	{
 		probability = Clamp01(probability);
-
-		if (probability == 0.f)
-		{
-			return false;
-		}
-		else if (probability == 1.f)
-		{
-			return true;
-		}
-
-		return Rand01() < probability;
+		return probability == 1.f || (probability != 0.f && Rand01() < probability);
 	}
 
 	inline int32_t RandSign()

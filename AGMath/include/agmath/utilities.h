@@ -109,20 +109,14 @@ namespace agm
 		return length - Abs(t - length);
 	}
 
-	inline float DeltaAngle(float current, float target)
-	{
-		float delta = Repeat(target - current, 360.f);
-		if (delta > 180.f)
-		{
-			delta -= 360.f;
-		}
-
-		return delta;
-	}
-
 	inline float WrapAngle(float angle)
 	{
 		return Repeat(angle + 180.f, 360.f) - 180.f;
+	}
+
+	inline float DeltaAngle(float current, float target)
+	{
+		return WrapAngle(target - current);
 	}
 
 	inline float AngleBetween(float a, float b)
