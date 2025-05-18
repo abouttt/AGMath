@@ -244,11 +244,6 @@ namespace agm
 			float clampedW = Clamp(w, -1.f, 1.f);
 			outAngle = 2.f * std::acos(clampedW) * RAD2DEG;
 			outAxis = GetRotationAxis();
-
-			if (Abs(outAngle) <= EPSILON)
-			{
-				outAxis = Vector3::RIGHT;
-			}
 		}
 
 		constexpr Vector3 RotateVector3(const Vector3& v) const
@@ -301,6 +296,12 @@ namespace agm
 			this->y = y;
 			this->z = z;
 			this->w = w;
+		}
+
+		constexpr bool IsSameRotation(const Quaternion& other, float tolerance = EPSILON) const
+		{
+			float dot = Dot(*this, other);
+			return agm::Abs(agm::Abs(dot) - 1.f) < tolerance;
 		}
 
 		constexpr bool Equals(const Quaternion& other, float tolerance = EPSILON) const
