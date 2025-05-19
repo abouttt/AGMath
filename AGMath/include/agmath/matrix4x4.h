@@ -256,7 +256,7 @@ namespace agm
 			return result;
 		}
 
-		bool Decompose(Vector3& outPosition, Quaternion& outRotation, Vector3& outScale) const noexcept
+		bool Decompose(Vector3& outPosition, Quaternion& outRotation, Vector3& outScale) const
 		{
 			outPosition = GetPosition();
 			outScale = GetScale();
