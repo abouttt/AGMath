@@ -380,7 +380,7 @@ namespace agm
 					axis = Vector3::Cross(Vector3::UP, fn);
 				}
 
-				return AngleAxis(180.f, axis);
+				return AngleAxis(180.f, axis.GetNormalized());
 			}
 
 			float s = std::sqrt((1.f + dot) * 2.f);
@@ -516,7 +516,7 @@ namespace agm
 				}
 			}
 
-			return q.GetNormalized();
+			return q;
 		}
 
 		static Quaternion RotateTowards(const Quaternion& from, const Quaternion& to, float maxDegreesDelta)
