@@ -36,6 +36,11 @@ namespace agm
 		return value < 0.f ? 0.f : (value > 1.f ? 1.f : value);
 	}
 
+	inline constexpr double Clamp01(double value)
+	{
+		return value < 0.0 ? 0.0 : (value > 1.0 ? 1.0 : value);
+	}
+
 	template<typename T>
 	inline constexpr T Max(T a, T b)
 	{
@@ -61,9 +66,9 @@ namespace agm
 	}
 
 	template<typename T>
-	inline constexpr bool InRange(T x, T minInclusive, T maxExclusive)
+	inline constexpr bool IsInRange(T x, T min, T max)
 	{
-		return x >= minInclusive && x < maxExclusive;
+		return x >= min && x < max;
 	}
 
 	inline constexpr float Sign(float value)
