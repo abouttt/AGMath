@@ -98,6 +98,7 @@ namespace agm
 	inline void SetSeed(uint64_t seed)
 	{
 		detail::GetRNG().SetSeed(seed);
+		detail::GetNormalCache().hasValue = false;
 	}
 
 	inline auto GetSeedState()
@@ -108,6 +109,7 @@ namespace agm
 	inline void RestoreSeedState(const std::array<uint32_t, 4>& state)
 	{
 		detail::GetRNG().SetState(state);
+		detail::GetNormalCache().hasValue = false;
 	}
 
 	inline uint32_t Rand()
@@ -132,8 +134,10 @@ namespace agm
 			std::swap(minInclusive, maxExclusive);
 		}
 
-		uint32_t range = static_cast<uint32_t>(maxExclusive - minInclusive);
+		uint64_t diff = static_cast<uint64_t>(maxExclusive) - static_cast<uint64_t>(minInclusive);
+		uint32_t range = static_cast<uint32_t>(diff);
 		uint32_t limit = (std::numeric_limits<uint32_t>::max() / range) * range;
+
 		uint32_t value;
 		do
 		{
@@ -145,6 +149,11 @@ namespace agm
 
 	inline float RandRange(float minInclusive, float maxInclusive)
 	{
+		if (IsNearlyEqual(minInclusive, maxInclusive))
+		{
+			return minInclusive;
+		}
+
 		if (minInclusive > maxInclusive)
 		{
 			std::swap(minInclusive, maxInclusive);
@@ -156,7 +165,18 @@ namespace agm
 	inline bool RandBool(float probability = 0.5f)
 	{
 		probability = Clamp01(probability);
-		return probability == 1.f || (probability != 0.f && Rand01() < probability);
+
+		if (IsNearlyEqual(probability, 1.f))
+		{
+			return true;
+		}
+
+		if (IsNearlyEqual(probability, 0.f))
+		{
+			return false;
+		}
+
+		return Rand01() < probability;
 	}
 
 	inline int32_t RandSign()
@@ -173,15 +193,16 @@ namespace agm
 			return cache.cachedValue * stddev + mean;
 		}
 
-		float u1;
+		float u1, u2;
 		do
 		{
 			u1 = Rand01();
 		} while (u1 <= EPSILON);
+		u2 = Rand01();
 
-		float u2 = Rand01();
 		float R = std::sqrt(-2.f * std::log(u1));
 		float angle = TWO_PI * u2;
+
 		float z0 = R * std::cos(angle);
 		float z1 = R * std::sin(angle);
 

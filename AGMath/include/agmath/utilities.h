@@ -94,7 +94,8 @@ namespace agm
 			return 0.f;
 		}
 
-		return value - std::floor(value / length) * length;
+		float result = value - std::floor(value / length) * length;
+		return IsNearlyEqual(result, length) ? 0.f : result;
 	}
 
 	inline float WrapAngle(float angle)
@@ -136,6 +137,11 @@ namespace agm
 
 	inline constexpr float MoveTowards(float current, float target, float maxDelta)
 	{
+		if (maxDelta < 0.f)
+		{
+			maxDelta = 0.f;
+		}
+
 		float delta = target - current;
 		if (Abs(delta) <= maxDelta)
 		{
@@ -147,6 +153,11 @@ namespace agm
 
 	inline float MoveTowardsAngle(float current, float target, float maxDelta)
 	{
+		if (maxDelta < 0.f)
+		{
+			maxDelta = 0.f;
+		}
+
 		float delta = DeltaAngle(current, target);
 		if (Abs(delta) <= maxDelta)
 		{
@@ -177,8 +188,7 @@ namespace agm
 		}
 
 		t = Clamp01(t);
-		t = t * t * (3.f - 2.f * t);
-		return t;
+		return t * t * (3.f - 2.f * t);
 	}
 
 	inline constexpr int32_t NextPowerOfTwo(int32_t value)
@@ -228,7 +238,7 @@ namespace agm
 
 	inline constexpr bool IsOdd(int32_t value)
 	{
-		return (value & 1) == 1;
+		return (value & 1) != 0;
 	}
 
 	inline float Sqrt(float value)
@@ -238,7 +248,7 @@ namespace agm
 
 	inline float InvSqrt(float value)
 	{
-		return 1.f / std::sqrt(value);
+		return IsNearlyZero(value) ? 0.f : 1.f / std::sqrt(value);
 	}
 
 	inline float Sin(float value)
@@ -258,12 +268,12 @@ namespace agm
 
 	inline float Asin(float value)
 	{
-		return std::asin(value);
+		return std::asin(Clamp(value, -1.f, 1.f));
 	}
 
 	inline float Acos(float value)
 	{
-		return std::acos(value);
+		return std::acos(Clamp(value, -1.f, 1.f));
 	}
 
 	inline float Atan(float value)
@@ -276,9 +286,9 @@ namespace agm
 		return std::atan2(y, x);
 	}
 
-	inline float Exp(float value)
+	inline float Exp(float power)
 	{
-		return std::exp(value);
+		return std::exp(power);
 	}
 
 	inline float Log(float value, float base)
