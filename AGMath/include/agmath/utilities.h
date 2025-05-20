@@ -16,8 +16,8 @@ namespace agm
 	inline constexpr float DEG2RAD = PI / 180.f;
 	inline constexpr float RAD2DEG = 180.f / PI;
 
-	inline constexpr float THRESH_VECTOR_NORMALIZED = 0.01f;
-	inline constexpr float THRESH_QUAT_NORMALIZED = 0.01f;
+	inline constexpr float VECTOR_NORMALIZED_THRESHOLD = 0.01f;
+	inline constexpr float QUATERNION_NORMALIZED_THRESHOLD = 0.01f;
 
 	template<typename T>
 	inline constexpr T Abs(T value)
@@ -97,12 +97,6 @@ namespace agm
 		return value - std::floor(value / length) * length;
 	}
 
-	inline float PingPong(float t, float length)
-	{
-		t = Repeat(t, length * 2.f);
-		return length - Abs(t - length);
-	}
-
 	inline float WrapAngle(float angle)
 	{
 		return Repeat(angle + 180.f, 360.f) - 180.f;
@@ -116,11 +110,6 @@ namespace agm
 	inline constexpr float Lerp(float a, float b, float t)
 	{
 		return a + (b - a) * Clamp01(t);
-	}
-
-	inline constexpr float LerpUnclamped(float a, float b, float t)
-	{
-		return a + (b - a) * t;
 	}
 
 	inline float LerpAngle(float a, float b, float t)
@@ -192,31 +181,6 @@ namespace agm
 		return t;
 	}
 
-	inline constexpr float SmootherStep(float from, float to, float t)
-	{
-		t = Clamp01(t);
-		t = t * t * t * (t * (t * 6.f - 15.f) + 10.f);
-		return from + (to - from) * t;
-	}
-
-	inline constexpr float SmootherStep01(float from, float to, float value)
-	{
-		float t;
-
-		if (IsNearlyEqual(from, to))
-		{
-			t = value <= from ? 0.f : 1.f;
-		}
-		else
-		{
-			t = (value - from) / (to - from);
-		}
-
-		t = Clamp01(t);
-		t = t * t * t * (t * (t * 6.f - 15.f) + 10.f);
-		return t;
-	}
-
 	inline constexpr int32_t NextPowerOfTwo(int32_t value)
 	{
 		if (value <= 0)
@@ -265,6 +229,71 @@ namespace agm
 	inline constexpr bool IsOdd(int32_t value)
 	{
 		return (value & 1) == 1;
+	}
+
+	inline float Sqrt(float value)
+	{
+		return std::sqrt(value);
+	}
+
+	inline float InvSqrt(float value)
+	{
+		return 1.f / std::sqrt(value);
+	}
+
+	inline float Sin(float value)
+	{
+		return std::sin(value);
+	}
+
+	inline float Cos(float value)
+	{
+		return std::cos(value);
+	}
+
+	inline float Tan(float value)
+	{
+		return std::tan(value);
+	}
+
+	inline float Asin(float value)
+	{
+		return std::asin(value);
+	}
+
+	inline float Acos(float value)
+	{
+		return std::acos(value);
+	}
+
+	inline float Atan(float value)
+	{
+		return std::atan(value);
+	}
+
+	inline float Atan2(float y, float x)
+	{
+		return std::atan2(y, x);
+	}
+
+	inline float Exp(float value)
+	{
+		return std::exp(value);
+	}
+
+	inline float Log(float value, float base)
+	{
+		return std::log(value) / std::log(base);
+	}
+
+	inline float Log2(float value)
+	{
+		return std::log2(value);
+	}
+
+	inline float Log10(float value)
+	{
+		return std::log10(value);
 	}
 
 	inline int32_t FloorToInt(float value)
