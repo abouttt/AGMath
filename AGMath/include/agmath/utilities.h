@@ -266,5 +266,20 @@ namespace agm
 	{
 		return (value & 1) == 1;
 	}
+
+	inline int32_t FloorToInt(float value)
+	{
+		return static_cast<int32_t>(std::floor(value));
+	}
+
+	inline int32_t CeilToInt(float value)
+	{
+		return static_cast<int32_t>(std::ceil(value));
+	}
+
+	inline int32_t RoundToInt(float value)
+	{
+		return static_cast<int32_t>(std::round(value));
+	}
 }
 
