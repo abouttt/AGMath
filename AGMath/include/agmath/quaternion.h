@@ -197,7 +197,7 @@ namespace agm
 
 		constexpr bool IsNormalized() const
 		{
-			return Abs(1.f - LengthSquared()) < THRESH_QUAT_NORMALIZED;
+			return Abs(1.f - LengthSquared()) < QUATERNION_NORMALIZED_THRESHOLD;
 		}
 
 		Vector3 GetEulerAngles() const
@@ -410,11 +410,7 @@ namespace agm
 		static Quaternion Lerp(const Quaternion& a, const Quaternion& b, float t)
 		{
 			t = Clamp01(t);
-			return LerpUnclamped(a, b, t);
-		}
 
-		static Quaternion LerpUnclamped(const Quaternion& a, const Quaternion& b, float t)
-		{
 			Quaternion result;
 
 			if (Dot(a, b) >= 0.f)
@@ -533,17 +529,13 @@ namespace agm
 				return to.GetNormalized();
 			}
 
-			return SlerpUnclamped(from, to, maxDegreesDelta / angle);
+			return Slerp(from, to, maxDegreesDelta / angle);
 		}
 
 		static Quaternion Slerp(const Quaternion& a, const Quaternion& b, float t)
 		{
 			t = Clamp01(t);
-			return SlerpUnclamped(a, b, t);
-		}
 
-		static Quaternion SlerpUnclamped(const Quaternion& a, const Quaternion& b, float t)
-		{
 			Quaternion an = a.GetNormalized();
 			Quaternion bn = b.GetNormalized();
 

@@ -200,7 +200,7 @@ namespace agm
 
 		constexpr bool IsNormalized() const
 		{
-			return Abs(1.f - LengthSquared()) < THRESH_VECTOR_NORMALIZED;
+			return Abs(1.f - LengthSquared()) < VECTOR_NORMALIZED_THRESHOLD;
 		}
 
 		constexpr Vector3 GetAbs() const
@@ -324,11 +324,6 @@ namespace agm
 			return Vector3(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t, a.z + (b.z - a.z) * t);
 		}
 
-		static constexpr Vector3 LerpUnclamped(const Vector3& a, const Vector3& b, float t)
-		{
-			return Vector3(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t, a.z + (b.z - a.z) * t);
-		}
-
 		static constexpr Vector3 Max(const Vector3& a, const Vector3& b)
 		{
 			return Vector3(agm::Max(a.x, b.x), agm::Max(a.y, b.y), agm::Max(a.z, b.z));
@@ -428,17 +423,13 @@ namespace agm
 		static Vector3 Slerp(const Vector3& a, const Vector3& b, float t)
 		{
 			t = Clamp01(t);
-			return SlerpUnclamped(a, b, t);
-		}
 
-		static Vector3 SlerpUnclamped(const Vector3& a, const Vector3& b, float t)
-		{
 			float lengthA = a.Length();
 			float lengthB = b.Length();
 
 			if (agm::IsNearlyZero(lengthA) || agm::IsNearlyZero(lengthB))
 			{
-				return LerpUnclamped(a, b, t);
+				return Lerp(a, b, t);
 			}
 
 			Vector3 unitA = a / lengthA;
@@ -447,18 +438,18 @@ namespace agm
 			float dot = agm::Clamp(Dot(unitA, unitB), -1.f, 1.f);
 			if (agm::IsNearlyEqual(dot, 1.f))
 			{
-				return LerpUnclamped(a, b, t);
+				return Lerp(a, b, t);
 			}
 
 			Vector3 relative = (unitB - unitA * dot).GetNormalized();
 			if (agm::IsNearlyZero(relative.LengthSquared()))
 			{
-				return LerpUnclamped(a, b, t);
+				return Lerp(a, b, t);
 			}
 
 			float theta = std::acos(dot) * t;
 			Vector3 direction = unitA * std::cos(theta) + relative * std::sin(theta);
-			float length = agm::LerpUnclamped(lengthA, lengthB, t);
+			float length = agm::Lerp(lengthA, lengthB, t);
 
 			return direction * length;
 		}

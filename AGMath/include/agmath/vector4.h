@@ -205,7 +205,7 @@ namespace agm
 
 		constexpr bool IsNormalized() const
 		{
-			return Abs(1.f - LengthSquared()) < THRESH_VECTOR_NORMALIZED;
+			return Abs(1.f - LengthSquared()) < VECTOR_NORMALIZED_THRESHOLD;
 		}
 
 		constexpr Vector4 GetAbs() const
@@ -286,11 +286,6 @@ namespace agm
 		static constexpr Vector4 Lerp(const Vector4& a, const Vector4& b, float t)
 		{
 			t = Clamp01(t);
-			return Vector4(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t, a.z + (b.z - a.z) * t, a.w + (b.w - a.w) * t);
-		}
-
-		static constexpr Vector4 LerpUnclamped(const Vector4& a, const Vector4& b, float t)
-		{
 			return Vector4(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t, a.z + (b.z - a.z) * t, a.w + (b.w - a.w) * t);
 		}
 
