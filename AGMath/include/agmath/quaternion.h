@@ -515,21 +515,32 @@ namespace agm
 			return q;
 		}
 
-		static Quaternion RotateTowards(const Quaternion& from, const Quaternion& to, float maxDegreesDelta)
+		static Quaternion RotateTowards(const Quaternion& from, const Quaternion& to, float maxAngleDelta)
 		{
-			float angle = Angle(from, to);
-
-			if (angle <= EPSILON || maxDegreesDelta <= 0.f)
+			if (maxAngleDelta <= 0.f)
 			{
 				return from;
 			}
 
-			if (maxDegreesDelta >= angle)
+			float cosTheta = Dot(from, to);
+			Quaternion toAdjusted = to;
+
+			if (cosTheta < 0.f)
 			{
-				return to.GetNormalized();
+				cosTheta = -cosTheta;
+				toAdjusted = -to;
 			}
 
-			return Slerp(from, to, maxDegreesDelta / angle);
+			cosTheta = std::clamp(cosTheta, -1.f, 1.f);
+			float angle = std::acos(cosTheta);
+
+			if (angle <= maxAngleDelta)
+			{
+				return toAdjusted;
+			}
+
+			float t = maxAngleDelta / angle;
+			return Slerp(from, toAdjusted, t);
 		}
 
 		static Quaternion Slerp(const Quaternion& a, const Quaternion& b, float t)
