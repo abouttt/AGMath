@@ -82,12 +82,6 @@ namespace agm
 		return value * value;
 	}
 
-	template<typename T>
-	inline constexpr T Cube(T value)
-	{
-		return value * value * value;
-	}
-
 	inline constexpr bool IsNearlyEqual(float a, float b, float tolerance = EPSILON)
 	{
 		return Abs(a - b) <= tolerance;
