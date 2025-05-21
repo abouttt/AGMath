@@ -68,7 +68,7 @@ namespace agm
 
 	inline constexpr float Sign(float value)
 	{
-		return value > 0.f ? 1.f : (value < 0.f ? -1.f : 0.f);
+		return value >= 0.f ? 1.f : -1.f;
 	}
 
 	template<typename T>
