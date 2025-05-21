@@ -176,7 +176,7 @@ namespace agm
 
 		float Length() const
 		{
-			return std::sqrt(x * x + y * y + z * z + w * w);
+			return agm::Sqrt(x * x + y * y + z * z + w * w);
 		}
 
 		constexpr float LengthSquared() const
@@ -194,8 +194,7 @@ namespace agm
 			float lengthSq = LengthSquared();
 			if (lengthSq > tolerance)
 			{
-				float invLength = 1.f / std::sqrt(lengthSq);
-				return *this * invLength;
+				return *this * agm::InvSqrt(lengthSq);
 			}
 			else
 			{
@@ -203,14 +202,14 @@ namespace agm
 			}
 		}
 
-		constexpr bool IsNormalized() const
+		constexpr bool IsNormalized(float threshold = agm::VECTOR_NORMALIZED_THRESHOLD) const
 		{
-			return Abs(1.f - LengthSquared()) < VECTOR_NORMALIZED_THRESHOLD;
+			return Abs(1.f - LengthSquared()) < threshold;
 		}
 
 		constexpr Vector4 GetAbs() const
 		{
-			return Vector4(Abs(x), Abs(y), Abs(z), Abs(w));
+			return Vector4(agm::Abs(x), agm::Abs(y), agm::Abs(z), agm::Abs(w));
 		}
 
 		constexpr float GetMax() const
@@ -220,7 +219,7 @@ namespace agm
 
 		constexpr float GetAbsMax() const
 		{
-			return agm::Max(agm::Max(Abs(x), Abs(y)), agm::Max(Abs(z), Abs(w)));
+			return agm::Max(agm::Max(agm::Abs(x), agm::Abs(y)), agm::Max(agm::Abs(z), agm::Abs(w)));
 		}
 
 		constexpr float GetMin() const
@@ -230,12 +229,16 @@ namespace agm
 
 		constexpr float GetAbsMin() const
 		{
-			return agm::Min(agm::Min(Abs(x), Abs(y)), agm::Min(Abs(z), Abs(w)));
+			return agm::Min(agm::Min(agm::Abs(x), agm::Abs(y)), agm::Min(agm::Abs(z), agm::Abs(w)));
 		}
 
 		constexpr bool IsNearlyZero(float tolerance = EPSILON) const
 		{
-			return Abs(x) <= tolerance && Abs(y) <= tolerance && Abs(z) <= tolerance && Abs(w) <= tolerance;
+			return
+				agm::IsNearlyZero(x, tolerance) &&
+				agm::IsNearlyZero(y, tolerance) &&
+				agm::IsNearlyZero(z, tolerance) &&
+				agm::IsNearlyZero(w, tolerance);
 		}
 
 		constexpr bool IsZero() const
@@ -253,7 +256,11 @@ namespace agm
 
 		constexpr bool Equals(const Vector4& other, float tolerance = EPSILON) const
 		{
-			return Abs(x - other.x) <= tolerance && Abs(y - other.y) <= tolerance && Abs(z - other.z) <= tolerance && Abs(w - other.w) <= tolerance;
+			return
+				agm::IsNearlyEqual(x, other.x, tolerance) &&
+				agm::IsNearlyEqual(y, other.y, tolerance) &&
+				agm::IsNearlyEqual(z, other.z, tolerance) &&
+				agm::IsNearlyEqual(w, other.w, tolerance);
 		}
 
 		std::string ToString() const
@@ -263,9 +270,14 @@ namespace agm
 
 	public:
 
-		static Vector4 Clamp(const Vector4& v, const Vector4& min, const Vector4& max)
+		static constexpr Vector4 Clamp(const Vector4& v, const Vector4& min, const Vector4& max)
 		{
-			return Vector4(agm::Clamp(v.x, min.x, max.x), agm::Clamp(v.y, min.y, max.y), agm::Clamp(v.z, min.z, max.z), agm::Clamp(v.w, min.w, max.w));
+			return Vector4(
+				agm::Clamp(v.x, min.x, max.x),
+				agm::Clamp(v.y, min.y, max.y),
+				agm::Clamp(v.z, min.z, max.z),
+				agm::Clamp(v.w, min.w, max.w)
+			);
 		}
 
 		static float Distance(const Vector4& a, const Vector4& b)
@@ -285,8 +297,13 @@ namespace agm
 
 		static constexpr Vector4 Lerp(const Vector4& a, const Vector4& b, float t)
 		{
-			t = Clamp01(t);
-			return Vector4(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t, a.z + (b.z - a.z) * t, a.w + (b.w - a.w) * t);
+			float clampedT = agm::Clamp01(t);
+			return Vector4(
+				a.x + (b.x - a.x) * clampedT,
+				a.y + (b.y - a.y) * clampedT,
+				a.z + (b.z - a.z) * clampedT,
+				a.w + (b.w - a.w) * clampedT
+			);
 		}
 
 		static constexpr Vector4 Max(const Vector4& a, const Vector4& b)
@@ -301,21 +318,26 @@ namespace agm
 
 		static Vector4 MoveTowards(const Vector4& current, const Vector4& target, float maxDistanceDelta)
 		{
+			float effMaxDistanceDelta = maxDistanceDelta < 0.f ? 0.f : maxDistanceDelta;
 			Vector4 delta = target - current;
-			float lengthSq = delta.LengthSquared();
-			if (agm::IsNearlyZero(lengthSq) || (maxDistanceDelta >= 0.f && lengthSq <= maxDistanceDelta * maxDistanceDelta))
+			float distSq = delta.LengthSquared();
+			if (agm::IsNearlyZero(distSq) || distSq <= effMaxDistanceDelta * effMaxDistanceDelta)
 			{
 				return target;
 			}
 
-			float length = std::sqrt(lengthSq);
-			return current + delta / length * maxDistanceDelta;
+			return current + delta * (effMaxDistanceDelta / agm::Sqrt(distSq));
 		}
 
-		static constexpr Vector4 Project(const Vector4& a, const Vector4& b)
+		static constexpr Vector4 Project(const Vector4& v, const Vector4& onNormal)
 		{
-			float dotB = Dot(b, b);
-			return (agm::IsNearlyZero(dotB)) ? Vector4::ZERO : b * (Dot(a, b) / dotB);
+			float normalLengthSq = Dot(onNormal, onNormal);
+			if (agm::IsNearlyZero(normalLengthSq))
+			{
+				return Vector4::ZERO;
+			}
+
+			return onNormal * (Dot(v, onNormal) / normalLengthSq);
 		}
 	};
 

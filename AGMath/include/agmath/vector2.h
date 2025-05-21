@@ -158,7 +158,7 @@ namespace agm
 
 		float Length() const
 		{
-			return std::sqrt(x * x + y * y);
+			return agm::Sqrt(x * x + y * y);
 		}
 
 		constexpr float LengthSquared() const
@@ -176,8 +176,7 @@ namespace agm
 			float lengthSq = LengthSquared();
 			if (lengthSq > tolerance)
 			{
-				float invLength = 1.f / std::sqrt(lengthSq);
-				return *this * invLength;
+				return *this * agm::InvSqrt(lengthSq);
 			}
 			else
 			{
@@ -185,14 +184,14 @@ namespace agm
 			}
 		}
 
-		constexpr bool IsNormalized() const
+		constexpr bool IsNormalized(float threshold = agm::VECTOR_NORMALIZED_THRESHOLD) const
 		{
-			return Abs(1.f - LengthSquared()) < VECTOR_NORMALIZED_THRESHOLD;
+			return agm::Abs(1.f - LengthSquared()) < threshold;
 		}
 
 		constexpr Vector2 GetAbs() const
 		{
-			return Vector2(Abs(x), Abs(y));
+			return Vector2(agm::Abs(x), agm::Abs(y));
 		}
 
 		constexpr float GetMax() const
@@ -202,7 +201,7 @@ namespace agm
 
 		constexpr float GetAbsMax() const
 		{
-			return agm::Max(Abs(x), Abs(y));
+			return agm::Max(agm::Abs(x), agm::Abs(y));
 		}
 
 		constexpr float GetMin() const
@@ -212,12 +211,12 @@ namespace agm
 
 		constexpr float GetAbsMin() const
 		{
-			return agm::Min(Abs(x), Abs(y));
+			return agm::Min(agm::Abs(x), agm::Abs(y));
 		}
 
 		constexpr bool IsNearlyZero(float tolerance = EPSILON) const
 		{
-			return Abs(x) <= tolerance && Abs(y) <= tolerance;
+			return agm::IsNearlyZero(x, tolerance) && agm::IsNearlyZero(y, tolerance);
 		}
 
 		constexpr bool IsZero() const
@@ -233,7 +232,7 @@ namespace agm
 
 		constexpr bool Equals(const Vector2& other, float tolerance = EPSILON) const
 		{
-			return Abs(x - other.x) <= tolerance && Abs(y - other.y) <= tolerance;
+			return agm::IsNearlyEqual(x, other.x, tolerance) && agm::IsNearlyEqual(y, other.y, tolerance);
 		}
 
 		std::string ToString() const
@@ -245,28 +244,32 @@ namespace agm
 
 		static float Angle(const Vector2& from, const Vector2& to)
 		{
-			float denominator = std::sqrt(from.LengthSquared() * to.LengthSquared());
-			if (agm::IsNearlyZero(denominator))
+			float denominatorSq = agm::Sqrt(from.LengthSquared() * to.LengthSquared());
+			if (agm::IsNearlyZero(denominatorSq))
 			{
 				return 0.f;
 			}
 
-			float cosTheta = Dot(from, to) / denominator;
+			float cosTheta = Dot(from, to) / denominatorSq;
 			return std::acos(agm::Clamp(cosTheta, -1.f, 1.f)) * agm::RAD2DEG;
 		}
 
-		static Vector2 Clamp(const Vector2& v, const Vector2& min, const Vector2& max)
+		static constexpr Vector2 Clamp(const Vector2& v, const Vector2& min, const Vector2& max)
 		{
 			return Vector2(agm::Clamp(v.x, min.x, max.x), agm::Clamp(v.y, min.y, max.y));
 		}
 
 		static Vector2 ClampLength(const Vector2& v, float maxLength)
 		{
-			float lengthSq = v.LengthSquared();
-			if (lengthSq > maxLength * maxLength)
+			if (maxLength < 0.f)
 			{
-				float length = std::sqrt(lengthSq);
-				return v * (maxLength / length);
+				maxLength = 0.f;
+			}
+
+			float lengthSq = v.LengthSquared();
+			if (lengthSq > maxLength * maxLength && !agm::IsNearlyZero(lengthSq))
+			{
+				return v * (maxLength / agm::Sqrt(lengthSq));
 			}
 
 			return v;
@@ -294,8 +297,8 @@ namespace agm
 
 		static constexpr Vector2 Lerp(const Vector2& a, const Vector2& b, float t)
 		{
-			t = Clamp01(t);
-			return Vector2(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t);
+			float clampedT = agm::Clamp01(t);
+			return Vector2(a.x + (b.x - a.x) * clampedT, a.y + (b.y - a.y) * clampedT);
 		}
 
 		static constexpr Vector2 Max(const Vector2& a, const Vector2& b)
@@ -310,15 +313,15 @@ namespace agm
 
 		static Vector2 MoveTowards(const Vector2& current, const Vector2& target, float maxDistanceDelta)
 		{
+			float effMaxDistanceDelta = maxDistanceDelta < 0.f ? 0.f : maxDistanceDelta;
 			Vector2 delta = target - current;
-			float lengthSq = delta.LengthSquared();
-			if (agm::IsNearlyZero(lengthSq) || (maxDistanceDelta >= 0.f && lengthSq <= maxDistanceDelta * maxDistanceDelta))
+			float distSq = delta.LengthSquared();
+			if (agm::IsNearlyZero(distSq) || distSq <= effMaxDistanceDelta * effMaxDistanceDelta)
 			{
 				return target;
 			}
 
-			float length = std::sqrt(lengthSq);
-			return current + delta / length * maxDistanceDelta;
+			return current + delta * (effMaxDistanceDelta / agm::Sqrt(distSq));
 		}
 
 		static constexpr Vector2 Perpendicular(const Vector2& v, bool clockwise = false)
@@ -334,18 +337,24 @@ namespace agm
 				return Vector2::ZERO;
 			}
 
-			return (Dot(v, onNormal) / normalLengthSq) * onNormal;
+			return onNormal * (Dot(v, onNormal) / normalLengthSq);
 		}
 
 		static constexpr Vector2 Reflect(const Vector2& inDirection, const Vector2& inNormal)
 		{
-			return inDirection - 2.f * Dot(inDirection, inNormal) * inNormal;
+			float normalLengthSq = Dot(inNormal, inNormal);
+			if (agm::IsNearlyZero(normalLengthSq))
+			{
+				return inDirection;
+			}
+
+			return inDirection - (2.f * Dot(inDirection, inNormal) / normalLengthSq) * inNormal;
 		}
 
 		static float SignedAngle(const Vector2& from, const Vector2& to)
 		{
 			float angle = Angle(from, to);
-			float sign = Sign(from.x * to.y - from.y * to.x);
+			float sign = agm::Sign(Cross(from, to));
 			return angle * sign;
 		}
 	};
