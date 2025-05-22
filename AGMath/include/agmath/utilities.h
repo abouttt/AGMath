@@ -7,7 +7,12 @@
 namespace agm
 {
 	inline constexpr float EPSILON = 1e-6f;
-	inline constexpr float EPSILON_SQUARED = EPSILON * EPSILON;
+	inline constexpr float EPSILON_SQ_LENGTH = 1e-9f;
+	inline constexpr float EPSILON_DOT_ONE = 1e-5f;
+	inline constexpr float MATRIX_EPSILON = 1e-5f;
+
+	inline constexpr float VECTOR_NORMALIZED_THRESHOLD = 0.01f;
+	inline constexpr float QUATERNION_NORMALIZED_THRESHOLD = 0.01f;
 
 	inline constexpr float PI = std::numbers::pi_v<float>;
 	inline constexpr float TWO_PI = 2.f * PI;
@@ -16,9 +21,6 @@ namespace agm
 
 	inline constexpr float DEG2RAD = PI / 180.f;
 	inline constexpr float RAD2DEG = 180.f / PI;
-
-	inline constexpr float VECTOR_NORMALIZED_THRESHOLD = 0.01f;
-	inline constexpr float QUATERNION_NORMALIZED_THRESHOLD = 0.01f;
 
 	template<typename T>
 	inline constexpr T Abs(T value)
@@ -73,9 +75,9 @@ namespace agm
 	}
 
 	template<typename T>
-	inline constexpr T Square(T value)
+	inline constexpr T Square(T x)
 	{
-		return value * value;
+		return x * x;
 	}
 
 	inline constexpr bool IsNearlyEqual(float a, float b, float tolerance = EPSILON)
@@ -109,28 +111,28 @@ namespace agm
 		return WrapAngle(target - current);
 	}
 
-	inline constexpr float Lerp(float a, float b, float t)
+	inline constexpr float Lerp(float start, float end, float t)
 	{
-		return a + (b - a) * Clamp01(t);
+		return start + (end - start) * Clamp01(t);
 	}
 
-	inline float LerpAngle(float a, float b, float t)
+	inline float LerpAngle(float start, float end, float t)
 	{
-		float delta = DeltaAngle(a, b);
-		return WrapAngle(a + delta * Clamp01(t));
+		float delta = DeltaAngle(start, end);
+		return WrapAngle(start + delta * Clamp01(t));
 	}
 
-	inline constexpr float InverseLerp(float a, float b, float value)
+	inline constexpr float InverseLerp(float start, float end, float value)
 	{
-		if (IsNearlyEqual(a, b))
+		if (IsNearlyEqual(start, end))
 		{
-			return value <= a ? 0.f : 1.f;
+			return value <= start ? 0.f : 1.f;
 		}
 
-		return Clamp01((value - a) / (b - a));
+		return Clamp01((value - start) / (end - start));
 	}
 
-	inline float Remap(float value, float oldMin, float oldMax, float newMin, float newMax)
+	inline constexpr float Remap(float value, float oldMin, float oldMax, float newMin, float newMax)
 	{
 		float t = InverseLerp(oldMin, oldMax, value);
 		return Lerp(newMin, newMax, t);
@@ -162,7 +164,7 @@ namespace agm
 		float delta = DeltaAngle(current, target);
 		if (Abs(delta) <= maxDelta)
 		{
-			return WrapAngle(target);
+			return target;
 		}
 
 		return WrapAngle(current + Sign(delta) * maxDelta);
@@ -175,20 +177,9 @@ namespace agm
 		return from + (to - from) * t;
 	}
 
-	inline constexpr float SmoothStep01(float from, float to, float value)
+	inline constexpr float SmoothInverseLerp(float from, float to, float value)
 	{
-		float t;
-
-		if (IsNearlyEqual(from, to))
-		{
-			t = value <= from ? 0.f : 1.f;
-		}
-		else
-		{
-			t = (value - from) / (to - from);
-		}
-
-		t = Clamp01(t);
+		float t = InverseLerp(from, to, value);
 		return t * t * (3.f - 2.f * t);
 	}
 
@@ -249,22 +240,27 @@ namespace agm
 
 	inline float InvSqrt(float value)
 	{
-		return IsNearlyZero(value) ? 0.f : 1.f / std::sqrt(value);
+		if (IsNearlyZero(value, EPSILON_SQ_LENGTH))
+		{
+			return 0.f;
+		}
+
+		return 1.f / std::sqrt(value);
 	}
 
-	inline float Sin(float value)
+	inline float Sin(float radians)
 	{
-		return std::sin(value);
+		return std::sin(radians);
 	}
 
-	inline float Cos(float value)
+	inline float Cos(float radians)
 	{
-		return std::cos(value);
+		return std::cos(radians);
 	}
 
-	inline float Tan(float value)
+	inline float Tan(float radians)
 	{
-		return std::tan(value);
+		return std::tan(radians);
 	}
 
 	inline float Asin(float value)
