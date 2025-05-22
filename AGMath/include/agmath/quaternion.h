@@ -199,7 +199,7 @@ namespace agm
 			return agm::Abs(1.f - LengthSquared()) < threshold;
 		}
 
-		Vector3 GetEulerAngles() const
+		Vector3 ToEulerAngles() const
 		{
 			Vector3 euler;
 
@@ -234,6 +234,11 @@ namespace agm
 			euler.z = agm::WrapAngle(euler.z);
 
 			return euler;
+		}
+
+		void FromEulerAngles(const Vector3& euler)
+		{
+			*this = Euler(euler.x, euler.y, euler.z);
 		}
 
 		Vector3 GetRotationAxis() const
@@ -283,11 +288,6 @@ namespace agm
 		constexpr Vector3 GetAxisZ() const
 		{
 			return RotateVector3(Vector3::FORWARD);
-		}
-
-		void SetEulerAngles(const Vector3& euler)
-		{
-			*this = Euler(euler.x, euler.y, euler.z);
 		}
 
 		void SetFromToRotation(const Vector3& fromDirection, const Vector3& toDirection)
