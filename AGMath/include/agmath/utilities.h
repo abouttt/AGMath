@@ -7,6 +7,7 @@
 namespace agm
 {
 	inline constexpr float EPSILON = 1e-6f;
+	inline constexpr float EPSILON_SQUARED = EPSILON * EPSILON;
 
 	inline constexpr float PI = std::numbers::pi_v<float>;
 	inline constexpr float TWO_PI = 2.f * PI;
