@@ -7,6 +7,7 @@
 #include <string>
 
 #include "utilities.h"
+#include "vector3.h"
 
 namespace agm
 {
@@ -34,11 +35,27 @@ namespace agm
 		{
 		}
 
+		constexpr Vector4(float fill)
+			: x(fill)
+			, y(fill)
+			, z(fill)
+			, w(fill)
+		{
+		}
+
 		constexpr Vector4(float x, float y, float z, float w)
 			: x(x)
 			, y(y)
 			, z(z)
 			, w(w)
+		{
+		}
+
+		constexpr explicit Vector4(const Vector3& v3, float w = 0.f)
+			: x(v3.x)
+			, y(v3.y)
+			, z(v3.z)
+			, w(0.f)
 		{
 		}
 
@@ -169,7 +186,7 @@ namespace agm
 
 		friend constexpr Vector4 operator*(float scalar, const Vector4& v)
 		{
-			return Vector4(v.x * scalar, v.y * scalar, v.z * scalar, v.w * scalar);
+			return v * scalar;
 		}
 
 	public:
@@ -184,27 +201,40 @@ namespace agm
 			return x * x + y * y + z * z + w * w;
 		}
 
-		void Normalize(float tolerance = EPSILON)
+		void Normalize(float tolerance = agm::EPSILON_SQ_LENGTH)
 		{
 			*this = GetNormalized(tolerance);
 		}
 
-		Vector4 GetNormalized(float tolerance = EPSILON) const
+		Vector4 GetNormalized(float tolerance = agm::EPSILON_SQ_LENGTH) const
 		{
-			float lengthSq = LengthSquared();
-			if (lengthSq > tolerance)
+			float lenSq = LengthSquared();
+			if (lenSq > tolerance)
 			{
-				return *this * agm::InvSqrt(lengthSq);
+				return *this * agm::InvSqrt(lenSq);
 			}
 			else
 			{
-				return Vector4::ZERO;
+				return ZERO;
 			}
 		}
 
-		constexpr bool IsNormalized(float threshold = agm::VECTOR_NORMALIZED_THRESHOLD) const
+		bool IsNormalized(float threshold = agm::VECTOR_NORMALIZED_THRESHOLD) const
 		{
-			return Abs(1.f - LengthSquared()) < threshold;
+			return agm::Abs(1.f - LengthSquared()) < threshold;
+		}
+
+		constexpr bool IsNearlyZero(float tolerance = agm::EPSILON) const
+		{
+			return agm::Abs(x) < tolerance &&
+				   agm::Abs(y) < tolerance && 
+				   agm::Abs(z) < tolerance && 
+				   agm::Abs(w) < tolerance;
+		}
+
+		constexpr bool IsZero() const
+		{
+			return x == 0.f && y == 0.f && z == 0.f && w == 0.f;
 		}
 
 		constexpr Vector4 GetAbs() const
@@ -217,33 +247,9 @@ namespace agm
 			return agm::Max(agm::Max(x, y), agm::Max(z, w));
 		}
 
-		constexpr float GetAbsMax() const
-		{
-			return agm::Max(agm::Max(agm::Abs(x), agm::Abs(y)), agm::Max(agm::Abs(z), agm::Abs(w)));
-		}
-
 		constexpr float GetMin() const
 		{
 			return agm::Min(agm::Min(x, y), agm::Min(z, w));
-		}
-
-		constexpr float GetAbsMin() const
-		{
-			return agm::Min(agm::Min(agm::Abs(x), agm::Abs(y)), agm::Min(agm::Abs(z), agm::Abs(w)));
-		}
-
-		constexpr bool IsNearlyZero(float tolerance = EPSILON) const
-		{
-			return
-				agm::IsNearlyZero(x, tolerance) &&
-				agm::IsNearlyZero(y, tolerance) &&
-				agm::IsNearlyZero(z, tolerance) &&
-				agm::IsNearlyZero(w, tolerance);
-		}
-
-		constexpr bool IsZero() const
-		{
-			return x == 0.f && y == 0.f && z == 0.f && w == 0.f;
 		}
 
 		constexpr void Set(float x, float y, float z, float w)
@@ -254,18 +260,22 @@ namespace agm
 			this->w = w;
 		}
 
-		constexpr bool Equals(const Vector4& other, float tolerance = EPSILON) const
+		constexpr bool Equals(const Vector4& other, float tolerance = agm::EPSILON) const
 		{
-			return
-				agm::IsNearlyEqual(x, other.x, tolerance) &&
-				agm::IsNearlyEqual(y, other.y, tolerance) &&
-				agm::IsNearlyEqual(z, other.z, tolerance) &&
-				agm::IsNearlyEqual(w, other.w, tolerance);
+			return agm::Abs(x - other.x) < tolerance &&
+				   agm::Abs(y - other.y) < tolerance &&
+				   agm::Abs(z - other.z) < tolerance &&
+				   agm::Abs(w - other.w) < tolerance;
 		}
 
 		std::string ToString() const
 		{
-			return std::format("({:.2f}, {:.2f}, {:.2f}, {:.2f})", x, y, z, w);
+			return std::format("({:.3f}, {:.3f}, {:.3f}, {:.3f})", x, y, z, w);
+		}
+
+		constexpr Vector3 ToVector3() const
+		{
+			return Vector3(x, y, z);
 		}
 
 	public:
@@ -297,12 +307,12 @@ namespace agm
 
 		static constexpr Vector4 Lerp(const Vector4& a, const Vector4& b, float t)
 		{
-			float clampedT = agm::Clamp01(t);
+			t = agm::Clamp01(t);
 			return Vector4(
-				a.x + (b.x - a.x) * clampedT,
-				a.y + (b.y - a.y) * clampedT,
-				a.z + (b.z - a.z) * clampedT,
-				a.w + (b.w - a.w) * clampedT
+				a.x + (b.x - a.x) * t,
+				a.y + (b.y - a.y) * t,
+				a.z + (b.z - a.z) * t,
+				a.w + (b.w - a.w) * t
 			);
 		}
 
@@ -316,28 +326,32 @@ namespace agm
 			return Vector4(agm::Min(a.x, b.x), agm::Min(a.y, b.y), agm::Min(a.z, b.z), agm::Min(a.w, b.w));
 		}
 
-		static Vector4 MoveTowards(const Vector4& current, const Vector4& target, float maxDistanceDelta)
+		static Vector4 MoveTowards(const Vector4& current, const Vector4& target, float maxDelta)
 		{
-			float effMaxDistanceDelta = maxDistanceDelta < 0.f ? 0.f : maxDistanceDelta;
+			if (maxDelta < 0.f)
+			{
+				maxDelta = 0.f;
+			}
+
 			Vector4 delta = target - current;
 			float distSq = delta.LengthSquared();
-			if (agm::IsNearlyZero(distSq) || distSq <= effMaxDistanceDelta * effMaxDistanceDelta)
+			if (distSq <= maxDelta * maxDelta || agm::IsNearlyZero(distSq, agm::EPSILON_SQ_LENGTH))
 			{
 				return target;
 			}
 
-			return current + delta * (effMaxDistanceDelta / agm::Sqrt(distSq));
+			return current + delta * (maxDelta / agm::Sqrt(distSq));
 		}
 
 		static constexpr Vector4 Project(const Vector4& v, const Vector4& onNormal)
 		{
-			float normalLengthSq = Dot(onNormal, onNormal);
-			if (agm::IsNearlyZero(normalLengthSq))
+			float normalLenSq = Dot(onNormal, onNormal);
+			if (agm::IsNearlyZero(normalLenSq, agm::EPSILON_SQ_LENGTH))
 			{
-				return Vector4::ZERO;
+				return ZERO;
 			}
 
-			return onNormal * (Dot(v, onNormal) / normalLengthSq);
+			return onNormal * (Dot(v, onNormal) / normalLenSq);
 		}
 	};
 
