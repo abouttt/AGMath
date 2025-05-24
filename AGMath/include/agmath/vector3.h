@@ -7,6 +7,7 @@
 #include <string>
 
 #include "utilities.h"
+#include "vector2.h"
 
 namespace agm
 {
@@ -38,9 +39,23 @@ namespace agm
 		{
 		}
 
+		constexpr Vector3(float fill)
+			: x(fill)
+			, y(fill)
+			, z(fill)
+		{
+		}
+
 		constexpr Vector3(float x, float y, float z)
 			: x(x)
 			, y(y)
+			, z(z)
+		{
+		}
+
+		constexpr explicit Vector3(const Vector2& v2, float z = 0.f)
+			: x(v2.x)
+			, y(v2.y)
 			, z(z)
 		{
 		}
@@ -164,7 +179,7 @@ namespace agm
 
 		friend constexpr Vector3 operator*(float scalar, const Vector3& v)
 		{
-			return Vector3(v.x * scalar, v.y * scalar, v.z * scalar);
+			return v * scalar;
 		}
 
 	public:
@@ -179,27 +194,39 @@ namespace agm
 			return x * x + y * y + z * z;
 		}
 
-		void Normalize(float tolerance = EPSILON)
+		void Normalize(float tolerance = agm::EPSILON_SQ_LENGTH)
 		{
 			*this = GetNormalized(tolerance);
 		}
 
-		Vector3 GetNormalized(float tolerance = EPSILON) const
+		Vector3 GetNormalized(float tolerance = agm::EPSILON_SQ_LENGTH) const
 		{
-			float lengthSq = LengthSquared();
-			if (lengthSq > tolerance)
+			float lenSq = LengthSquared();
+			if (lenSq > tolerance)
 			{
-				return *this * agm::InvSqrt(lengthSq);;
+				return *this * agm::InvSqrt(lenSq);
 			}
 			else
 			{
-				return Vector3::ZERO;
+				return ZERO;
 			}
 		}
 
-		constexpr bool IsNormalized(float threshold = agm::VECTOR_NORMALIZED_THRESHOLD) const
+		bool IsNormalized(float threshold = agm::VECTOR_NORMALIZED_THRESHOLD) const
 		{
 			return agm::Abs(1.f - LengthSquared()) < threshold;
+		}
+
+		constexpr bool IsNearlyZero(float tolerance = agm::EPSILON) const
+		{
+			return agm::Abs(x) < tolerance && 
+				   agm::Abs(y) < tolerance && 
+				   agm::Abs(z) < tolerance;
+		}
+
+		constexpr bool IsZero() const
+		{
+			return x == 0.f && y == 0.f && z == 0.f;
 		}
 
 		constexpr Vector3 GetAbs() const
@@ -212,29 +239,9 @@ namespace agm
 			return agm::Max3(x, y, z);
 		}
 
-		constexpr float GetAbsMax() const
-		{
-			return agm::Max3(agm::Abs(x), agm::Abs(y), agm::Abs(z));
-		}
-
 		constexpr float GetMin() const
 		{
 			return agm::Min3(x, y, z);
-		}
-
-		constexpr float GetAbsMin() const
-		{
-			return agm::Min3(agm::Abs(x), agm::Abs(y), agm::Abs(z));
-		}
-
-		constexpr bool IsNearlyZero(float tolerance = EPSILON) const
-		{
-			return agm::IsNearlyZero(x, tolerance) && agm::IsNearlyZero(y, tolerance) && agm::IsNearlyZero(z, tolerance);
-		}
-
-		constexpr bool IsZero() const
-		{
-			return x == 0.f && y == 0.f && z == 0.f;
 		}
 
 		constexpr void Set(float x, float y, float z)
@@ -244,31 +251,35 @@ namespace agm
 			this->z = z;
 		}
 
-		constexpr bool Equals(const Vector3& other, float tolerance = EPSILON) const
+		constexpr bool Equals(const Vector3& other, float tolerance = agm::EPSILON) const
 		{
-			return
-				agm::IsNearlyEqual(x, other.x, tolerance) &&
-				agm::IsNearlyEqual(y, other.y, tolerance) &&
-				agm::IsNearlyEqual(z, other.z, tolerance);
+			return agm::Abs(x - other.x) < tolerance && 
+				   agm::Abs(y - other.y) < tolerance &&
+				   agm::Abs(z - other.z) < tolerance;
 		}
 
 		std::string ToString() const
 		{
-			return std::format("({:.2f}, {:.2f}, {:.2f})", x, y, z);
+			return std::format("({:.3f}, {:.3f}, {:.3f})", x, y, z);
+		}
+
+		constexpr Vector2 ToVector2() const
+		{
+			return Vector2(x, y);
 		}
 
 	public:
 
-		static float Angle(const Vector3& from, const Vector3& to)
+		static float Angle(const Vector3& a, const Vector3& b)
 		{
-			float denominatorSq = from.LengthSquared() * to.LengthSquared();
-			if (agm::IsNearlyZero(denominatorSq))
+			float denominatorSq = a.LengthSquared() * b.LengthSquared();
+			if (agm::IsNearlyZero(denominatorSq, agm::EPSILON_SQ_LENGTH))
 			{
 				return 0.f;
 			}
 
-			float cosTheta = Dot(from, to) / agm::Sqrt(denominatorSq);
-			return std::acos(agm::Clamp(cosTheta, -1.f, 1.f)) * agm::RAD2DEG;
+			float cosTheta = Dot(a, b) / agm::Sqrt(denominatorSq);
+			return agm::Acos(agm::Clamp(cosTheta, -1.f, 1.f)) * agm::RAD2DEG;
 		}
 
 		static constexpr Vector3 Clamp(const Vector3& v, const Vector3& min, const Vector3& max)
@@ -287,10 +298,10 @@ namespace agm
 				maxLength = 0.f;
 			}
 
-			float lengthSq = v.LengthSquared();
-			if (lengthSq > maxLength * maxLength && !agm::IsNearlyZero(lengthSq))
+			float lenSq = v.LengthSquared();
+			if (lenSq > maxLength * maxLength && !agm::IsNearlyZero(lenSq, agm::EPSILON_SQ_LENGTH))
 			{
-				return v * (maxLength / agm::Sqrt(lengthSq));
+				return v * (maxLength / agm::Sqrt(lenSq));
 			}
 
 			return v;
@@ -322,34 +333,28 @@ namespace agm
 
 		static Vector3 FindOrthogonal(const Vector3& v)
 		{
-			Vector3 absV = v.GetAbs();
-			Vector3 other;
-			if (absV.x < absV.y)
+			if (v.IsNearlyZero(agm::EPSILON_SQ_LENGTH))
 			{
-				other = (absV.x < absV.z) ? Vector3::RIGHT : Vector3::FORWARD;
-			}
-			else
-			{
-				other = (absV.y < absV.z) ? Vector3::UP : Vector3::FORWARD;
+				return Vector3::ZERO;
 			}
 
-			if (!agm::IsNearlyZero(v.x) || !agm::IsNearlyZero(v.y))
+			if (agm::Abs(v.x) > agm::Abs(v.y))
 			{
-				return Cross(v, Vector3::FORWARD).GetNormalized();
+				return Vector3(-v.z, 0.f, v.x).GetNormalized();
 			}
 			else
 			{
-				return Cross(v, Vector3::RIGHT).GetNormalized();
+				return Vector3(0.f, -v.z, v.y).GetNormalized();
 			}
 		}
 
 		static constexpr Vector3 Lerp(const Vector3& a, const Vector3& b, float t)
 		{
-			float clampedT = agm::Clamp01(t);
+			t = agm::Clamp01(t);
 			return Vector3(
-				a.x + (b.x - a.x) * clampedT,
-				a.y + (b.y - a.y) * clampedT,
-				a.z + (b.z - a.z) * clampedT
+				a.x + (b.x - a.x) * t,
+				a.y + (b.y - a.y) * t,
+				a.z + (b.z - a.z) * t
 			);
 		}
 
@@ -363,17 +368,21 @@ namespace agm
 			return Vector3(agm::Min(a.x, b.x), agm::Min(a.y, b.y), agm::Min(a.z, b.z));
 		}
 
-		static Vector3 MoveTowards(const Vector3& current, const Vector3& target, float maxDistanceDelta)
+		static Vector3 MoveTowards(const Vector3& current, const Vector3& target, float maxDelta)
 		{
-			float effMaxDistanceDelta = maxDistanceDelta < 0.f ? 0.f : maxDistanceDelta;
+			if (maxDelta < 0.f)
+			{
+				maxDelta = 0.f;
+			}
+
 			Vector3 delta = target - current;
 			float distSq = delta.LengthSquared();
-			if (agm::IsNearlyZero(distSq) || distSq <= effMaxDistanceDelta * effMaxDistanceDelta)
+			if (distSq <= maxDelta * maxDelta || agm::IsNearlyZero(distSq, agm::EPSILON_SQ_LENGTH))
 			{
 				return target;
 			}
 
-			return current + delta * (effMaxDistanceDelta / agm::Sqrt(distSq));
+			return current + delta * (maxDelta / agm::Sqrt(distSq));
 		}
 
 		static void OrthoNormalize(Vector3& normal, Vector3& tangent)
@@ -392,146 +401,30 @@ namespace agm
 
 		static constexpr Vector3 Project(const Vector3& v, const Vector3& onNormal)
 		{
-			float normalLengthSq = Dot(onNormal, onNormal);
-			if (agm::IsNearlyZero(normalLengthSq))
+			float normalLenSq = Dot(onNormal, onNormal);
+			if (agm::IsNearlyZero(normalLenSq, agm::EPSILON_SQ_LENGTH))
 			{
-				return Vector3::ZERO;
+				return ZERO;
 			}
 
-			return onNormal * (Dot(v, onNormal) / normalLengthSq);
+			return onNormal * (Dot(v, onNormal) / normalLenSq);
 		}
 
 		static constexpr Vector3 ProjectOnPlane(const Vector3& v, const Vector3& planeNormal)
 		{
-			float normalLengthSq = Dot(planeNormal, planeNormal);
-			if (agm::IsNearlyZero(normalLengthSq))
-			{
-				return v;
-			}
-
-			return v - planeNormal * (Dot(v, planeNormal) / normalLengthSq);
+			return v - Project(v, planeNormal);
 		}
 
 		static constexpr Vector3 Reflect(const Vector3& inDirection, const Vector3& inNormal)
 		{
-			float normalLengthSq = Dot(inNormal, inNormal);
-			if (agm::IsNearlyZero(normalLengthSq))
-			{
-				return inDirection;
-			}
-
-			return inDirection - (2.f * Dot(inDirection, inNormal) / normalLengthSq) * inNormal;
+			return inDirection - Project(inDirection, inNormal) * 2.f;
 		}
 
-		static Vector3 RotateTowards(const Vector3& current, const Vector3& target, float maxRadiansDelta, float maxLengthDelta)
+		static float SignedAngle(const Vector3& a, const Vector3& b, const Vector3& axis)
 		{
-			float effMaxRadiansDelta = maxRadiansDelta < 0.f ? 0.f : maxRadiansDelta;
-			float effMaxLengthDelta = maxLengthDelta;
-
-			float currentLength = current.Length();
-			float targetLength = target.Length();
-
-			if (agm::IsNearlyZero(currentLength) || agm::IsNearlyZero(targetLength))
-			{
-				if (agm::IsNearlyZero(currentLength) && agm::IsNearlyZero(targetLength))
-				{
-					return target;
-				}
-
-				Vector3 nonZeroDir = agm::IsNearlyZero(currentLength) ? target.GetNormalized() : current.GetNormalized();
-				float newMag = agm::MoveTowards(currentLength, targetLength, effMaxLengthDelta);
-				return nonZeroDir * newMag;
-			}
-
-			Vector3 currentDirection = current / currentLength;
-			Vector3 targetDirection = target / targetLength;
-
-			float cosTheta = agm::Clamp(Dot(currentDirection, targetDirection), -1.f, 1.f);
-			float angle = std::acos(cosTheta);
-
-			float finalLength = agm::MoveTowards(currentLength, targetLength, effMaxLengthDelta);
-
-			if (agm::IsNearlyZero(angle) || agm::IsNearlyZero(effMaxRadiansDelta))
-			{
-				return currentDirection * finalLength;
-			}
-
-			float t = agm::Min(1.f, effMaxRadiansDelta / angle);
-
-			Vector3 rotationAxis = Cross(currentDirection, targetDirection);
-			if (rotationAxis.IsNearlyZero())
-			{
-				if (IsNearlyEqual(cosTheta, -1.f))
-				{
-					Vector3 arbitraryAxis = FindOrthogonal(currentDirection);
-					if (arbitraryAxis.IsNearlyZero())
-					{
-						return currentDirection * finalLength;
-					}
-
-					float rotAngle = t * agm::PI;
-					Vector3 rotatedDirection = currentDirection * std::cos(rotAngle) + Cross(arbitraryAxis, currentDirection) * std::sin(rotAngle);
-					return rotatedDirection.GetNormalized() * finalLength;
-				}
-
-				return currentDirection * finalLength;
-			}
-
-			rotationAxis.Normalize();
-
-			Vector3 relative = (targetDirection - currentDirection * cosTheta);
-			if (relative.IsNearlyZero())
-			{
-				return currentDirection * finalLength;
-			}
-			relative.Normalize();
-
-			Vector3 direction = currentDirection * std::cos(t * angle) + relative * std::sin(t * angle);
-			return direction * finalLength;
-		}
-
-		static float SignedAngle(const Vector3& from, const Vector3& to, const Vector3& axis)
-		{
-			float unsignedAngle = Angle(from, to);
-			float sign = agm::Sign(Dot(axis, Cross(from, to)));
-			return unsignedAngle * sign;
-		}
-
-		static Vector3 Slerp(const Vector3& a, const Vector3& b, float t)
-		{
-			float clampedT = agm::Clamp01(t);
-
-			float lengthA = a.Length();
-			float lengthB = b.Length();
-
-			float finalLength = agm::Lerp(lengthA, lengthB, clampedT);
-
-			if (agm::IsNearlyZero(lengthA) || agm::IsNearlyZero(lengthB))
-			{
-				return Lerp(a, b, clampedT);
-			}
-
-			Vector3 unitA = a / lengthA;
-			Vector3 unitB = b / lengthB;
-
-			float dot = agm::Clamp(Dot(unitA, unitB), -1.f, 1.f);
-
-			if (agm::IsNearlyEqual(agm::Abs(dot), 1.f))
-			{
-				return unitA * finalLength;
-			}
-
-			float theta0 = std::acos(dot);
-			float theta = theta0 * clampedT;
-
-			Vector3 relative = (unitB - unitA * dot).GetNormalized();
-			if (relative.IsNearlyZero())
-			{
-				return Lerp(a, b, clampedT);
-			}
-
-			Vector3 direction = unitA * std::cos(theta) + relative * std::sin(theta);
-			return direction * finalLength;
+			float angle = Angle(a, b);
+			float sign = Dot(axis, Cross(a, b));
+			return angle * agm::Sign(sign);
 		}
 	};
 
