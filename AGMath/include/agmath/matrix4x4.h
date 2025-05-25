@@ -4,6 +4,7 @@
 #include <cmath>
 #include <cstddef>
 #include <format>
+#include <stdexcept>
 #include <string>
 
 #include "utilities.h"
@@ -50,16 +51,38 @@ namespace agm
 		{
 		}
 
-	public:
-
-		constexpr float operator()(size_t row, size_t column) const
+		constexpr Matrix4x4(
+			float m00, float m10, float m20, float m30,
+			float m01, float m11, float m21, float m31,
+			float m02, float m12, float m22, float m32,
+			float m03, float m13, float m23, float m33)
+			: m00(m00), m10(m10), m20(m20), m30(m30)
+			, m01(m01), m11(m11), m21(m21), m31(m31)
+			, m02(m02), m12(m12), m22(m22), m32(m32)
+			, m03(m03), m13(m13), m23(m23), m33(m33)
 		{
-			return m[size_t(row + column * 4)];
 		}
 
-		constexpr float& operator()(size_t row, size_t column)
+	public:
+
+		float operator()(size_t row, size_t column) const
 		{
-			return m[size_t(row + column * 4)];
+			if (row >= 4 || column >= 4)
+			{
+				throw std::out_of_range("Invalid Matrix4x4 index!");
+			}
+
+			return m[row + column * 4];
+		}
+
+		float& operator()(size_t row, size_t column)
+		{
+			if (row >= 4 || column >= 4)
+			{
+				throw std::out_of_range("Invalid Matrix4x4 index!");
+			}
+
+			return m[row + column * 4];
 		}
 
 		constexpr Matrix4x4 operator*(float scalar) const
@@ -74,85 +97,37 @@ namespace agm
 			return result;
 		}
 
-		constexpr Matrix4x4 operator*(const Matrix4x4& other) const
+		Matrix4x4 operator*(const Matrix4x4& other) const
 		{
-			Matrix4x4 result;
+			Matrix4x4 result = ZERO;
 
-			result.m00 = m00 * other.m00 + m01 * other.m10 + m02 * other.m20 + m03 * other.m30;
-			result.m01 = m00 * other.m01 + m01 * other.m11 + m02 * other.m21 + m03 * other.m31;
-			result.m02 = m00 * other.m02 + m01 * other.m12 + m02 * other.m22 + m03 * other.m32;
-			result.m03 = m00 * other.m03 + m01 * other.m13 + m02 * other.m23 + m03 * other.m33;
-
-			result.m10 = m10 * other.m00 + m11 * other.m10 + m12 * other.m20 + m13 * other.m30;
-			result.m11 = m10 * other.m01 + m11 * other.m11 + m12 * other.m21 + m13 * other.m31;
-			result.m12 = m10 * other.m02 + m11 * other.m12 + m12 * other.m22 + m13 * other.m32;
-			result.m13 = m10 * other.m03 + m11 * other.m13 + m12 * other.m23 + m13 * other.m33;
-
-			result.m20 = m20 * other.m00 + m21 * other.m10 + m22 * other.m20 + m23 * other.m30;
-			result.m21 = m20 * other.m01 + m21 * other.m11 + m22 * other.m21 + m23 * other.m31;
-			result.m22 = m20 * other.m02 + m21 * other.m12 + m22 * other.m22 + m23 * other.m32;
-			result.m23 = m20 * other.m03 + m21 * other.m13 + m22 * other.m23 + m23 * other.m33;
-
-			result.m30 = m30 * other.m00 + m31 * other.m10 + m32 * other.m20 + m33 * other.m30;
-			result.m31 = m30 * other.m01 + m31 * other.m11 + m32 * other.m21 + m33 * other.m31;
-			result.m32 = m30 * other.m02 + m31 * other.m12 + m32 * other.m22 + m33 * other.m32;
-			result.m33 = m30 * other.m03 + m31 * other.m13 + m32 * other.m23 + m33 * other.m33;
+			for (size_t r = 0; r < 4; r++)
+			{
+				for (size_t c = 0; c < 4; c++)
+				{
+					for (size_t k = 0; k < 4; k++)
+					{
+						result(r, c) += (*this)(r, k) * other(k, c);
+					}
+				}
+			}
 
 			return result;
 		}
 
 		constexpr Matrix4x4& operator*=(float scalar)
 		{
-			for (float& val : m)
+			for (float& e : m)
 			{
-				val *= scalar;
+				e *= scalar;
 			}
 
 			return *this;
 		}
 
-		constexpr Matrix4x4& operator*=(const Matrix4x4& other)
+		Matrix4x4& operator*=(const Matrix4x4& other)
 		{
-			float new00 = m00 * other.m00 + m01 * other.m10 + m02 * other.m20 + m03 * other.m30;
-			float new01 = m00 * other.m01 + m01 * other.m11 + m02 * other.m21 + m03 * other.m31;
-			float new02 = m00 * other.m02 + m01 * other.m12 + m02 * other.m22 + m03 * other.m32;
-			float new03 = m00 * other.m03 + m01 * other.m13 + m02 * other.m23 + m03 * other.m33;
-
-			float new10 = m10 * other.m00 + m11 * other.m10 + m12 * other.m20 + m13 * other.m30;
-			float new11 = m10 * other.m01 + m11 * other.m11 + m12 * other.m21 + m13 * other.m31;
-			float new12 = m10 * other.m02 + m11 * other.m12 + m12 * other.m22 + m13 * other.m32;
-			float new13 = m10 * other.m03 + m11 * other.m13 + m12 * other.m23 + m13 * other.m33;
-
-			float new20 = m20 * other.m00 + m21 * other.m10 + m22 * other.m20 + m23 * other.m30;
-			float new21 = m20 * other.m01 + m21 * other.m11 + m22 * other.m21 + m23 * other.m31;
-			float new22 = m20 * other.m02 + m21 * other.m12 + m22 * other.m22 + m23 * other.m32;
-			float new23 = m20 * other.m03 + m21 * other.m13 + m22 * other.m23 + m23 * other.m33;
-
-			float new30 = m30 * other.m00 + m31 * other.m10 + m32 * other.m20 + m33 * other.m30;
-			float new31 = m30 * other.m01 + m31 * other.m11 + m32 * other.m21 + m33 * other.m31;
-			float new32 = m30 * other.m02 + m31 * other.m12 + m32 * other.m22 + m33 * other.m32;
-			float new33 = m30 * other.m03 + m31 * other.m13 + m32 * other.m23 + m33 * other.m33;
-
-			m00 = new00;
-			m01 = new01;
-			m02 = new02;
-			m03 = new03;
-
-			m10 = new10;
-			m11 = new11;
-			m12 = new12;
-			m13 = new13;
-
-			m20 = new20;
-			m21 = new21;
-			m22 = new22;
-			m23 = new23;
-
-			m30 = new30;
-			m31 = new31;
-			m32 = new32;
-			m33 = new33;
-
+			*this = *this * other;
 			return *this;
 		}
 
@@ -174,59 +149,53 @@ namespace agm
 			return !(*this == other);
 		}
 
+		friend constexpr Matrix4x4 operator*(float scalar, const Matrix4x4& mat)
+		{
+			return mat * scalar;
+		}
+
 	public:
 
 		constexpr float Determinant() const
 		{
-			float s0 = m00 * m11 - m01 * m10;
-			float s1 = m00 * m12 - m02 * m10;
-			float s2 = m00 * m13 - m03 * m10;
-			float s3 = m01 * m12 - m02 * m11;
-			float s4 = m01 * m13 - m03 * m11;
-			float s5 = m02 * m13 - m03 * m12;
-
-			float t0 = m20 * m31 - m21 * m30;
-			float t1 = m20 * m32 - m22 * m30;
-			float t2 = m20 * m33 - m23 * m30;
-			float t3 = m21 * m32 - m22 * m31;
-			float t4 = m21 * m33 - m23 * m31;
-			float t5 = m22 * m33 - m23 * m32;
-
-			return (s0 * t5 - s1 * t4 + s2 * t3 + s3 * t2 - s4 * t1 + s5 * t0);
+			float c00 = (m11 * (m22 * m33 - m23 * m32) - m12 * (m21 * m33 - m23 * m31) + m13 * (m21 * m32 - m22 * m31));
+			float c01 = -(m10 * (m22 * m33 - m23 * m32) - m12 * (m20 * m33 - m23 * m30) + m13 * (m20 * m32 - m22 * m30));
+			float c02 = (m10 * (m21 * m33 - m23 * m31) - m11 * (m20 * m33 - m23 * m30) + m13 * (m20 * m31 - m21 * m30));
+			float c03 = -(m10 * (m21 * m32 - m22 * m31) - m11 * (m20 * m32 - m22 * m30) + m12 * (m20 * m31 - m21 * m30));
+			return m00 * c00 + m01 * c01 + m02 * c02 + m03 * c03;
 		}
 
 		constexpr Matrix4x4 Inverse() const
 		{
-			Matrix4x4 result;
+			Matrix4x4 adj;
 
-			result.m00 = (m11 * (m22 * m33 - m23 * m32) - m12 * (m21 * m33 - m23 * m31) + m13 * (m21 * m32 - m22 * m31));
-			result.m01 = -(m01 * (m22 * m33 - m23 * m32) - m02 * (m21 * m33 - m23 * m31) + m03 * (m21 * m32 - m22 * m31));
-			result.m02 = (m01 * (m12 * m33 - m13 * m32) - m02 * (m11 * m33 - m13 * m31) + m03 * (m11 * m32 - m12 * m31));
-			result.m03 = -(m01 * (m12 * m23 - m13 * m22) - m02 * (m11 * m23 - m13 * m21) + m03 * (m11 * m22 - m12 * m21));
+			adj.m00 = (m11 * (m22 * m33 - m23 * m32) - m12 * (m21 * m33 - m23 * m31) + m13 * (m21 * m32 - m22 * m31));
+			adj.m01 = -(m01 * (m22 * m33 - m23 * m32) - m02 * (m21 * m33 - m23 * m31) + m03 * (m21 * m32 - m22 * m31));
+			adj.m02 = (m01 * (m12 * m33 - m13 * m32) - m02 * (m11 * m33 - m13 * m31) + m03 * (m11 * m32 - m12 * m31));
+			adj.m03 = -(m01 * (m12 * m23 - m13 * m22) - m02 * (m11 * m23 - m13 * m21) + m03 * (m11 * m22 - m12 * m21));
 
-			result.m10 = -(m10 * (m22 * m33 - m23 * m32) - m12 * (m20 * m33 - m23 * m30) + m13 * (m20 * m32 - m22 * m30));
-			result.m11 = (m00 * (m22 * m33 - m23 * m32) - m02 * (m20 * m33 - m23 * m30) + m03 * (m20 * m32 - m22 * m30));
-			result.m12 = -(m00 * (m12 * m33 - m13 * m32) - m02 * (m10 * m33 - m13 * m30) + m03 * (m10 * m32 - m12 * m30));
-			result.m13 = (m00 * (m12 * m23 - m13 * m22) - m02 * (m10 * m23 - m13 * m20) + m03 * (m10 * m22 - m12 * m20));
+			adj.m10 = -(m10 * (m22 * m33 - m23 * m32) - m12 * (m20 * m33 - m23 * m30) + m13 * (m20 * m32 - m22 * m30));
+			adj.m11 = (m00 * (m22 * m33 - m23 * m32) - m02 * (m20 * m33 - m23 * m30) + m03 * (m20 * m32 - m22 * m30));
+			adj.m12 = -(m00 * (m12 * m33 - m13 * m32) - m02 * (m10 * m33 - m13 * m30) + m03 * (m10 * m32 - m12 * m30));
+			adj.m13 = (m00 * (m12 * m23 - m13 * m22) - m02 * (m10 * m23 - m13 * m20) + m03 * (m10 * m22 - m12 * m20));
 
-			result.m20 = (m10 * (m21 * m33 - m23 * m31) - m11 * (m20 * m33 - m23 * m30) + m13 * (m20 * m31 - m21 * m30));
-			result.m21 = -(m00 * (m21 * m33 - m23 * m31) - m01 * (m20 * m33 - m23 * m30) + m03 * (m20 * m31 - m21 * m30));
-			result.m22 = (m00 * (m11 * m33 - m13 * m31) - m01 * (m10 * m33 - m13 * m30) + m03 * (m10 * m31 - m11 * m30));
-			result.m23 = -(m00 * (m11 * m23 - m13 * m21) - m01 * (m10 * m23 - m13 * m20) + m03 * (m10 * m21 - m11 * m20));
+			adj.m20 = (m10 * (m21 * m33 - m23 * m31) - m11 * (m20 * m33 - m23 * m30) + m13 * (m20 * m31 - m21 * m30));
+			adj.m21 = -(m00 * (m21 * m33 - m23 * m31) - m01 * (m20 * m33 - m23 * m30) + m03 * (m20 * m31 - m21 * m30));
+			adj.m22 = (m00 * (m11 * m33 - m13 * m31) - m01 * (m10 * m33 - m13 * m30) + m03 * (m10 * m31 - m11 * m30));
+			adj.m23 = -(m00 * (m11 * m23 - m13 * m21) - m01 * (m10 * m23 - m13 * m20) + m03 * (m10 * m21 - m11 * m20));
 
-			result.m30 = -(m10 * (m21 * m32 - m22 * m31) - m11 * (m20 * m32 - m22 * m30) + m12 * (m20 * m31 - m21 * m30));
-			result.m31 = (m00 * (m21 * m32 - m22 * m31) - m01 * (m20 * m32 - m22 * m30) + m02 * (m20 * m31 - m21 * m30));
-			result.m32 = -(m00 * (m11 * m32 - m12 * m31) - m01 * (m10 * m32 - m12 * m30) + m02 * (m10 * m31 - m11 * m30));
-			result.m33 = (m00 * (m11 * m22 - m12 * m21) - m01 * (m10 * m22 - m12 * m20) + m02 * (m10 * m21 - m11 * m20));
+			adj.m30 = -(m10 * (m21 * m32 - m22 * m31) - m11 * (m20 * m32 - m22 * m30) + m12 * (m20 * m31 - m21 * m30));
+			adj.m31 = (m00 * (m21 * m32 - m22 * m31) - m01 * (m20 * m32 - m22 * m30) + m02 * (m20 * m31 - m21 * m30));
+			adj.m32 = -(m00 * (m11 * m32 - m12 * m31) - m01 * (m10 * m32 - m12 * m30) + m02 * (m10 * m31 - m11 * m30));
+			adj.m33 = (m00 * (m11 * m22 - m12 * m21) - m01 * (m10 * m22 - m12 * m20) + m02 * (m10 * m21 - m11 * m20));
 
-			float det = m00 * result.m00 + m01 * result.m10 + m02 * result.m20 + m03 * result.m30;
-			if (Abs(det) <= EPSILON)
+			float det = m00 * adj.m00 + m01 * adj.m10 + m02 * adj.m20 + m03 * adj.m30;
+			if (agm::IsNearlyZero(det, agm::MATRIX_EPSILON))
 			{
-				return Matrix4x4::ZERO;
+				return ZERO;
 			}
 
-			result *= (1.f / det);
-			return result;
+			return adj * (1.f / det);
 		}
 
 		constexpr Matrix4x4 Transpose() const
@@ -259,43 +228,56 @@ namespace agm
 		bool Decompose(Vector3& outPosition, Quaternion& outRotation, Vector3& outScale) const
 		{
 			outPosition = GetPosition();
-			outScale = GetScale();
 
-			if (Abs(outScale.x) <= EPSILON || Abs(outScale.y) <= EPSILON || Abs(outScale.z) <= EPSILON)
+			Matrix4x4 rotScaleMat = *this;
+			rotScaleMat.SetColumn(3, Vector4(0.f, 0.f, 0.f, 1.f));
+			outScale = rotScaleMat.GetScale();
+			if (outScale.IsNearlyZero(agm::EPSILON_SQ_LENGTH))
 			{
 				outRotation = Quaternion::IDENTITY;
 				return false;
 			}
 
-			Matrix4x4 rotationMatrix;
+			Matrix4x4 pureRotMat = IDENTITY;
+			if (!agm::IsNearlyZero(outScale.x))
+			{
+				pureRotMat.SetColumn(0, rotScaleMat.GetColumn(0) / outScale.x);
+			}
+			if (!agm::IsNearlyZero(outScale.y))
+			{
+				pureRotMat.SetColumn(1, rotScaleMat.GetColumn(1) / outScale.y);
+			}
+			if (!agm::IsNearlyZero(outScale.z))
+			{
+				pureRotMat.SetColumn(2, rotScaleMat.GetColumn(2) / outScale.z);
+			}
 
-			rotationMatrix.SetColumn(0, GetColumn(0) / outScale.x);
-			rotationMatrix.SetColumn(1, GetColumn(1) / outScale.y);
-			rotationMatrix.SetColumn(2, GetColumn(2) / outScale.z);
-			rotationMatrix.m33 = 1.f;
-
-			outRotation = rotationMatrix.getRotationOnly();
+			outRotation = pureRotMat.GetRotation();
 
 			return true;
 		}
 
 		constexpr Vector4 TransformVector4(const Vector4& v) const
 		{
-			return Vector4(
-				m00 * v.x + m01 * v.y + m02 * v.z + m03 * v.w,
-				m10 * v.x + m11 * v.y + m12 * v.z + m13 * v.w,
-				m20 * v.x + m21 * v.y + m22 * v.z + m23 * v.w,
-				m30 * v.x + m31 * v.y + m32 * v.z + m33 * v.w
-			);
+			Vector4 result;
+
+			result.x = m00 * v.x + m01 * v.y + m02 * v.z + m03 * v.w;
+			result.y = m10 * v.x + m11 * v.y + m12 * v.z + m13 * v.w;
+			result.z = m20 * v.x + m21 * v.y + m22 * v.z + m23 * v.w;
+			result.w = m30 * v.x + m31 * v.y + m32 * v.z + m33 * v.w;
+
+			return result;
 		}
 
 		constexpr Vector3 TransformVector3(const Vector3& v) const
 		{
-			return Vector3(
-				m00 * v.x + m01 * v.y + m02 * v.z,
-				m10 * v.x + m11 * v.y + m12 * v.z,
-				m20 * v.x + m21 * v.y + m22 * v.z
-			);
+			Vector3 result;
+
+			result.x = m00 * v.x + m01 * v.y + m02 * v.z;
+			result.y = m10 * v.x + m11 * v.y + m12 * v.z;
+			result.z = m20 * v.x + m21 * v.y + m22 * v.z;
+
+			return result;
 		}
 
 		constexpr Vector3 TransformPosition(const Vector3& position) const
@@ -306,11 +288,10 @@ namespace agm
 			result.y = m10 * position.x + m11 * position.y + m12 * position.z + m13;
 			result.z = m20 * position.x + m21 * position.y + m22 * position.z + m23;
 
-			float w = m30 * position.x + m31 * position.y + m32 * position.z + m33;
-			if (Abs(w) > EPSILON && Abs(w - 1.f) > EPSILON)
+			float wComp = m30 * position.x + m31 * position.y + m32 * position.z + m33;
+			if (!agm::IsNearlyZero(wComp) && !agm::IsNearlyEqual(wComp, 1.f))
 			{
-				float invW = 1.f / w;
-				return result * invW;
+				return result * (1.f / wComp);
 			}
 
 			return result;
@@ -318,11 +299,13 @@ namespace agm
 
 		constexpr Vector3 TransformPosition3DAffine(const Vector3& position) const
 		{
-			return Vector3(
-				m00 * position.x + m01 * position.y + m02 * position.z + m03,
-				m10 * position.x + m11 * position.y + m12 * position.z + m13,
-				m20 * position.x + m21 * position.y + m22 * position.z + m23
-			);
+			Vector3 result;
+
+			result.x = m00 * position.x + m01 * position.y + m02 * position.z + m03;
+			result.y = m10 * position.x + m11 * position.y + m12 * position.z + m13;
+			result.z = m20 * position.x + m21 * position.y + m22 * position.z + m23;
+
+			return result;
 		}
 
 		constexpr Vector3 GetPosition() const
@@ -332,53 +315,76 @@ namespace agm
 
 		Quaternion GetRotation() const
 		{
-			Vector3 scale = GetScale();
-			if (Abs(scale.x) <= EPSILON || Abs(scale.y) <= EPSILON || Abs(scale.z) <= EPSILON)
+			Matrix4x4 mat = *this;
+			mat.SetPosition(Vector3::ZERO);
+
+			Vector3 scale = mat.GetScale();
+			if (scale.IsNearlyZero(agm::EPSILON_SQ_LENGTH))
 			{
 				return Quaternion::IDENTITY;
 			}
 
-			Vector3 col0 = Vector3(m00, m10, m20) / scale.x;
-			Vector3 col1 = Vector3(m01, m11, m21) / scale.y;
-			Vector3 col2 = Vector3(m02, m12, m22) / scale.z;
+			Matrix4x4 rotMat = IDENTITY;
+			Vector3 c0 = mat.GetColumn(0).ToVector3();
+			Vector3 c1 = mat.GetColumn(1).ToVector3();
+			Vector3 c2 = mat.GetColumn(2).ToVector3();
 
-			float det = Vector3::Dot(col0, Vector3::Cross(col1, col2));
-			if (det < 0.f)
+			if (!IsNearlyZero(scale.x))
 			{
-				scale.z *= -1.f;
-				col2 *= -1.f;
+				c0 /= scale.x;
+			}
+			if (!IsNearlyZero(scale.y))
+			{
+				c1 /= scale.y;
+			}
+			if (!IsNearlyZero(scale.z))
+			{
+				c2 /= scale.z;
 			}
 
-			Matrix4x4 rotationMatrix;
+			if (Vector3::Dot(c0, Vector3::Cross(c1, c2)) < 0.f)
+			{
+				if (!IsNearlyZero(scale.z))
+				{
+					c2 *= -1.f;
+				}
+				else if (!IsNearlyZero(scale.y))
+				{
+					c1 *= -1.f;
+				}
+				else if (!IsNearlyZero(scale.x))
+				{
+					c0 *= -1.f;
+				}
+			}
 
-			rotationMatrix.SetColumn(0, Vector4(col0.x, col0.y, col0.z, 0.f));
-			rotationMatrix.SetColumn(1, Vector4(col1.x, col1.y, col1.z, 0.f));
-			rotationMatrix.SetColumn(2, Vector4(col2.x, col2.y, col2.z, 0.f));
-			rotationMatrix.m33 = 1.f;
+			rotMat.SetColumn(0, Vector4(c0, 0.f));
+			rotMat.SetColumn(1, Vector4(c1, 0.f));
+			rotMat.SetColumn(2, Vector4(c2, 0.f));
 
-			return rotationMatrix.getRotationOnly();
+			return rotMat.getRotationOnly();
 		}
 
 		Vector3 GetScale() const
 		{
 			return Vector3(
-				Vector3(m00, m10, m20).Length(),
-				Vector3(m01, m11, m21).Length(),
-				Vector3(m02, m12, m22).Length()
+				GetColumn(0).ToVector3().Length(),
+				GetColumn(1).ToVector3().Length(),
+				GetColumn(2).ToVector3().Length()
 			);
 		}
 
-		constexpr Vector4 GetRow(size_t index) const
+		Vector4 GetRow(size_t index) const
 		{
 			return Vector4((*this)(index, 0), (*this)(index, 1), (*this)(index, 2), (*this)(index, 3));
 		}
 
-		constexpr Vector4 GetColumn(size_t index) const
+		Vector4 GetColumn(size_t index) const
 		{
 			return Vector4((*this)(0, index), (*this)(1, index), (*this)(2, index), (*this)(3, index));
 		}
 
-		constexpr void SetRow(size_t index, const Vector4& row)
+		void SetRow(size_t index, const Vector4& row)
 		{
 			(*this)(index, 0) = row.x;
 			(*this)(index, 1) = row.y;
@@ -386,7 +392,7 @@ namespace agm
 			(*this)(index, 3) = row.w;
 		}
 
-		constexpr void SetColumn(size_t index, const Vector4& column)
+		void SetColumn(size_t index, const Vector4& column)
 		{
 			(*this)(0, index) = column.x;
 			(*this)(1, index) = column.y;
@@ -394,38 +400,30 @@ namespace agm
 			(*this)(3, index) = column.w;
 		}
 
-		constexpr void SetTRS(const Vector3& pos, const Quaternion& q, const Vector3& s)
+		constexpr void SetPosition(const Vector3& position)
 		{
-			float x = q.x;
-			float y = q.y;
-			float z = q.z;
-			float w = q.w;
-			float x2 = x + x;
-			float y2 = y + y;
-			float z2 = z + z;
-			float xx = x * x2;
-			float xy = x * y2;
-			float xz = x * z2;
-			float yy = y * y2;
-			float yz = y * z2;
-			float zz = z * z2;
-			float wx = w * x2;
-			float wy = w * y2;
-			float wz = w * z2;
+			m03 = position.x;
+			m13 = position.y;
+			m23 = position.z;
+		}
 
-			m00 = (1.f - (yy + zz)) * s.x;
-			m01 = (xy - wz) * s.y;
-			m02 = (xz + wy) * s.z;
+		constexpr void SetTRS(const Vector3& pos, const Quaternion& rot, const Vector3& scale)
+		{
+			Matrix4x4 rotMat = Rotate(rot);
+
+			m00 = rotMat.m00 * scale.x;
+			m01 = rotMat.m01 * scale.y;
+			m02 = rotMat.m02 * scale.z;
 			m03 = pos.x;
 
-			m10 = (xy + wz) * s.x;
-			m11 = (1.f - (xx + zz)) * s.y;
-			m12 = (yz - wx) * s.z;
+			m10 = rotMat.m10 * scale.x;
+			m11 = rotMat.m11 * scale.y;
+			m12 = rotMat.m12 * scale.z;
 			m13 = pos.y;
 
-			m20 = (xz - wy) * s.x;
-			m21 = (yz + wx) * s.y;
-			m22 = (1.f - (xx + yy)) * s.z;
+			m20 = rotMat.m20 * scale.x;
+			m21 = rotMat.m21 * scale.y;
+			m22 = rotMat.m22 * scale.z;
 			m23 = pos.z;
 
 			m30 = 0.f;
@@ -436,20 +434,20 @@ namespace agm
 
 		bool IsValidTRS() const
 		{
-			if (Abs(m30) > EPSILON || Abs(m31) > EPSILON || Abs(m32) > EPSILON || Abs(m33 - 1.f) > EPSILON)
+			if (!IsNearlyZero(m30) ||
+				!IsNearlyZero(m31) ||
+				!IsNearlyZero(m32) ||
+				!IsNearlyEqual(m33, 1.f))
 			{
 				return false;
 			}
 
-			Vector4 c0_4 = GetColumn(0);
-			Vector4 c1_4 = GetColumn(1);
-			Vector4 c2_4 = GetColumn(2);
-
-			Vector3 c0(c0_4.x, c0_4.y, c0_4.z);
-			Vector3 c1(c1_4.x, c1_4.y, c1_4.z);
-			Vector3 c2(c2_4.x, c2_4.y, c2_4.z);
-
-			if (c0.LengthSquared() <= EPSILON || c1.LengthSquared() <= EPSILON || c2.LengthSquared() <= EPSILON)
+			Vector3 c0 = GetColumn(0).ToVector3();
+			Vector3 c1 = GetColumn(1).ToVector3();
+			Vector3 c2 = GetColumn(2).ToVector3();
+			if (c0.IsNearlyZero(agm::EPSILON_SQ_LENGTH) ||
+				c1.IsNearlyZero(agm::EPSILON_SQ_LENGTH) ||
+				c2.IsNearlyZero(agm::EPSILON_SQ_LENGTH))
 			{
 				return false;
 			}
@@ -458,18 +456,16 @@ namespace agm
 			c1.Normalize();
 			c2.Normalize();
 
-			float dot01 = Vector3::Dot(c0, c1);
-			float dot02 = Vector3::Dot(c0, c2);
-			float dot12 = Vector3::Dot(c1, c2);
-
-			return Abs(dot01) <= EPSILON && Abs(dot02) <= EPSILON && Abs(dot12) <= EPSILON;
+			return IsNearlyZero(Vector3::Dot(c0, c1)) &&
+				   IsNearlyZero(Vector3::Dot(c0, c2)) &&
+				   IsNearlyZero(Vector3::Dot(c1, c2));
 		}
 
-		constexpr bool Equals(const Matrix4x4& other, float tolerance = EPSILON) const
+		constexpr bool Equals(const Matrix4x4& other, float tolerance = agm::MATRIX_EPSILON) const
 		{
 			for (size_t i = 0; i < 16; i++)
 			{
-				if (Abs(m[i] - other.m[i]) > tolerance)
+				if (!IsNearlyEqual(m[i], other.m[i], tolerance))
 				{
 					return false;
 				}
@@ -481,21 +477,33 @@ namespace agm
 		std::string ToString() const
 		{
 			return std::format(
-				"{:.5f}, {:.5f}, {:.5f}, {:.5f}\n" "{:.5f}, {:.5f}, {:.5f}, {:.5f}\n"
-				"{:.5f}, {:.5f}, {:.5f}, {:.5f}\n" "{:.5f}, {:.5f}, {:.5f}, {:.5f}",
-				m00, m01, m02, m03, m10, m11, m12, m13,
-				m20, m21, m22, m23, m30, m31, m32, m33);
+				"[{: .3f}, {: .3f}, {: .3f}, {: .3f}]\n"
+				"[{: .3f}, {: .3f}, {: .3f}, {: .3f}]\n"
+				"[{: .3f}, {: .3f}, {: .3f}, {: .3f}]\n"
+				"[{: .3f}, {: .3f}, {: .3f}, {: .3f}]",
+				m00, m01, m02, m03,
+				m10, m11, m12, m13,
+				m20, m21, m22, m23,
+				m30, m31, m32, m33
+			);
 		}
 
 	public:
 
 		static constexpr Matrix4x4 Frustum(float left, float right, float bottom, float top, float zNear, float zFar)
 		{
+			Matrix4x4 result = ZERO;
+
+			if (IsNearlyZero(right - left) ||
+				IsNearlyZero(top - bottom) ||
+				IsNearlyZero(zFar - zNear))
+			{
+				return result;
+			}
+
 			float invWidth = 1.f / (right - left);
 			float invHeight = 1.f / (top - bottom);
 			float invDepth = 1.f / (zFar - zNear);
-
-			Matrix4x4 result = ZERO;
 
 			result.m00 = 2.f * zNear * invWidth;
 			result.m02 = (right + left) * invWidth;
@@ -511,33 +519,35 @@ namespace agm
 			return result;
 		}
 
-		static constexpr bool Inverse3DAffine(const Matrix4x4& input, Matrix4x4& output)
+		static bool Inverse3DAffine(const Matrix4x4& input, Matrix4x4& output)
 		{
-			float det3 =
-				input.m00 * (input.m11 * input.m22 - input.m12 * input.m21) -
-				input.m01 * (input.m10 * input.m22 - input.m12 * input.m20) +
-				input.m02 * (input.m10 * input.m21 - input.m11 * input.m20);
-			if (Abs(det3) <= EPSILON)
+			Vector3 c0 = input.GetColumn(0).ToVector3();
+			Vector3 c1 = input.GetColumn(1).ToVector3();
+			Vector3 c2 = input.GetColumn(2).ToVector3();
+
+			float det3 = Vector3::Dot(c0, Vector3::Cross(c1, c2));
+			if (IsNearlyZero(det3, agm::MATRIX_EPSILON))
 			{
 				return false;
 			}
 
 			float invDet3 = 1.f / det3;
+			Vector3 pos = input.GetPosition();
 
-			output.m00 = (input.m11 * input.m22 - input.m12 * input.m21) * invDet3;
-			output.m01 = (input.m02 * input.m21 - input.m01 * input.m22) * invDet3;
-			output.m02 = (input.m01 * input.m12 - input.m02 * input.m11) * invDet3;
-			output.m03 = -(output.m00 * input.m03 + output.m01 * input.m13 + output.m02 * input.m23);
+			output.m00 = (c1.y * c2.z - c1.z * c2.y) * invDet3;
+			output.m01 = (input.m02 * c2.y - c1.y * input.m22) * invDet3;
+			output.m02 = (c1.y * input.m21 - input.m01 * c2.y) * invDet3;
+			output.m03 = -(output.m00 * pos.x + output.m01 * pos.y + output.m02 * pos.z);
 
-			output.m10 = (input.m12 * input.m20 - input.m10 * input.m22) * invDet3;
-			output.m11 = (input.m00 * input.m22 - input.m02 * input.m20) * invDet3;
-			output.m12 = (input.m02 * input.m10 - input.m00 * input.m12) * invDet3;
-			output.m13 = -(output.m10 * input.m03 + output.m11 * input.m13 + output.m12 * input.m23);
+			output.m10 = (c1.z * c2.x - c1.x * c2.z) * invDet3;
+			output.m11 = (input.m00 * c2.z - input.m02 * c2.x) * invDet3;
+			output.m12 = (input.m02 * c1.x - input.m00 * c1.z) * invDet3;
+			output.m13 = -(output.m10 * pos.x + output.m11 * pos.y + output.m12 * pos.z);
 
-			output.m20 = (input.m10 * input.m21 - input.m11 * input.m20) * invDet3;
-			output.m21 = (input.m01 * input.m20 - input.m00 * input.m21) * invDet3;
-			output.m22 = (input.m00 * input.m11 - input.m01 * input.m10) * invDet3;
-			output.m23 = -(output.m20 * input.m03 + output.m21 * input.m13 + output.m22 * input.m23);
+			output.m20 = (c1.x * c2.y - c1.y * c2.x) * invDet3;
+			output.m21 = (input.m01 * c2.x - input.m00 * c2.y) * invDet3;
+			output.m22 = (input.m00 * c1.y - input.m01 * c1.x) * invDet3;
+			output.m23 = -(output.m20 * pos.x + output.m21 * pos.y + output.m22 * pos.z);
 
 			output.m30 = 0.f;
 			output.m31 = 0.f;
@@ -547,55 +557,59 @@ namespace agm
 			return true;
 		}
 
-		static Matrix4x4 LookAt(const Vector3& from, const Vector3& to, const Vector3& up)
+		static Matrix4x4 LookAt(const Vector3& eye, const Vector3& target, const Vector3& up)
 		{
-			Vector3 zAxis = (to - from).GetNormalized();
-			if (zAxis.LengthSquared() <= EPSILON)
+			Vector3 f = (target - eye).GetNormalized();
+			if (f.IsNearlyZero(agm::EPSILON_SQ_LENGTH))
 			{
-				zAxis = Vector3::FORWARD;
+				f = Vector3::FORWARD;
 			}
 
-			Vector3 xAxis = Vector3::Cross(up, zAxis).GetNormalized();
-			if (xAxis.LengthSquared() <= EPSILON)
+			Vector3 r = Vector3::Cross(up, f).GetNormalized();
+			if (r.IsNearlyZero(agm::EPSILON_SQ_LENGTH))
 			{
-				if (Abs(zAxis.y - 1.f) <= EPSILON || Abs(zAxis.y + 1.f) <= EPSILON)
+				if (Abs(f.y) > 1.f - agm::EPSILON_DOT_ONE)
 				{
-					xAxis = Vector3::Cross(Vector3::RIGHT, zAxis).GetNormalized();
-					if (xAxis.LengthSquared() <= EPSILON)
-					{
-						xAxis = Vector3::Cross(Vector3::UP, zAxis).GetNormalized();
-					}
+					r = Vector3::Cross(Vector3::FORWARD, f);
 				}
 				else
 				{
-					xAxis = Vector3::Cross(Vector3::UP, zAxis).GetNormalized();
+					r = Vector3::Cross(Vector3::UP, f);
 				}
 
-				if (xAxis.LengthSquared() <= EPSILON)
+				r.Normalize();
+				if (r.IsNearlyZero(agm::EPSILON_SQ_LENGTH))
 				{
-					xAxis = Vector3::RIGHT;
+					r = (Abs(f.x) < 0.9f ? Vector3::RIGHT : Vector3::UP);
+					r = Vector3::Cross(r, f).GetNormalized();
+					if (r.IsNearlyZero(agm::EPSILON_SQ_LENGTH))
+					{
+						r = Vector3::RIGHT;
+					}
 				}
 			}
+			Vector3 u = Vector3::Cross(f, r);
 
-			Vector3 yAxis = Vector3::Cross(zAxis, xAxis).GetNormalized();
+			Matrix4x4 result;
 
-			Matrix4x4 result = ZERO;
+			result.m00 = r.x;
+			result.m01 = u.x;
+			result.m02 = f.x;
+			result.m03 = -Vector3::Dot(r, eye);
 
-			result.m00 = xAxis.x;
-			result.m01 = xAxis.y;
-			result.m02 = xAxis.z;
-			result.m03 = -Vector3::Dot(xAxis, from);
+			result.m10 = r.y;
+			result.m11 = u.y;
+			result.m12 = f.y;
+			result.m13 = -Vector3::Dot(u, eye);
 
-			result.m10 = yAxis.x;
-			result.m11 = yAxis.y;
-			result.m12 = yAxis.z;
-			result.m13 = -Vector3::Dot(yAxis, from);
+			result.m20 = r.z;
+			result.m21 = u.z;
+			result.m22 = f.z;
+			result.m23 = -Vector3::Dot(f, eye);
 
-			result.m20 = zAxis.x;
-			result.m21 = zAxis.y;
-			result.m22 = zAxis.z;
-			result.m23 = -Vector3::Dot(zAxis, from);
-
+			result.m30 = 0.f;
+			result.m31 = 0.f;
+			result.m32 = 0.f;
 			result.m33 = 1.f;
 
 			return result;
@@ -603,11 +617,18 @@ namespace agm
 
 		static constexpr Matrix4x4 Orthographic(float left, float right, float bottom, float top, float zNear, float zFar)
 		{
+			Matrix4x4 result = ZERO;
+
+			if (IsNearlyZero(right - left) ||
+				IsNearlyZero(top - bottom) ||
+				IsNearlyZero(zFar - zNear))
+			{
+				return result;
+			}
+
 			float invWidth = 1.f / (right - left);
 			float invHeight = 1.f / (top - bottom);
 			float invDepth = 1.f / (zFar - zNear);
-
-			Matrix4x4 result = ZERO;
 
 			result.m00 = 2.f * invWidth;
 			result.m03 = -(right + left) * invWidth;
@@ -625,23 +646,33 @@ namespace agm
 
 		static Matrix4x4 Perspective(float fovYDegrees, float aspectRatio, float zNear, float zFar)
 		{
-			float tanHalfFovY = std::tan(fovYDegrees * DEG2RAD * 0.5f);
-			float invDepth = 1.f / (zFar - zNear);
-
 			Matrix4x4 result = ZERO;
 
-			result.m00 = 1.f / (aspectRatio * tanHalfFovY);
-			result.m11 = 1.f / tanHalfFovY;
-			result.m22 = -(zFar + zNear) * invDepth;
-			result.m23 = -(2.f * zFar * zNear) * invDepth;
+			if (IsNearlyZero(aspectRatio) ||
+				IsNearlyZero(zFar - zNear) ||
+				fovYDegrees <= 0.f || fovYDegrees >= 180.f)
+			{
+				return result;
+			}
+
+			float tanHalfFov = agm::Tan(fovYDegrees * DEG2RAD * 0.5f);
+			float invFarMinusNear = 1.f / (zFar - zNear);
+
+			result.m00 = 1.f / (aspectRatio * tanHalfFov);
+
+			result.m11 = 1.f / tanHalfFov;
+
+			result.m22 = -(zFar + zNear) * invFarMinusNear;
+			result.m23 = -(2.f * zFar * zNear) * invFarMinusNear;
+
 			result.m32 = -1.f;
 
 			return result;
 		}
 
-		static Matrix4x4 Translate(const Vector3& v)
+		static constexpr Matrix4x4 Translate(const Vector3& v)
 		{
-			Matrix4x4 result = Matrix4x4::IDENTITY;
+			Matrix4x4 result = IDENTITY;
 
 			result.m03 = v.x;
 			result.m13 = v.y;
@@ -650,24 +681,20 @@ namespace agm
 			return result;
 		}
 
-		static constexpr Matrix4x4 Rotate(const Quaternion& r)
+		static constexpr Matrix4x4 Rotate(const Quaternion& q)
 		{
-			float x = r.x;
-			float y = r.y;
-			float z = r.z;
-			float w = r.w;
-			float x2 = x + x;
-			float y2 = y + y;
-			float z2 = z + z;
-			float xx = x * x2;
-			float xy = x * y2;
-			float xz = x * z2;
-			float yy = y * y2;
-			float yz = y * z2;
-			float zz = z * z2;
-			float wx = w * x2;
-			float wy = w * y2;
-			float wz = w * z2;
+			float x2 = q.x + q.x;
+			float y2 = q.y + q.y;
+			float z2 = q.z + q.z;
+			float xx = q.x * x2;
+			float xy = q.x * y2;
+			float xz = q.x * z2;
+			float yy = q.y * y2;
+			float yz = q.y * z2;
+			float zz = q.z * z2;
+			float wx = q.w * x2;
+			float wy = q.w * y2;
+			float wz = q.w * z2;
 
 			Matrix4x4 result = ZERO;
 
@@ -688,22 +715,22 @@ namespace agm
 			return result;
 		}
 
-		static constexpr Matrix4x4 Scale(const Vector3& scale)
+		static constexpr Matrix4x4 Scale(const Vector3& s)
 		{
 			Matrix4x4 result = ZERO;
 
-			result.m00 = scale.x;
-			result.m11 = scale.y;
-			result.m22 = scale.z;
+			result.m00 = s.x;
+			result.m11 = s.y;
+			result.m22 = s.z;
 			result.m33 = 1.f;
 
 			return result;
 		}
 
-		static constexpr Matrix4x4 TRS(const Vector3& pos, const Quaternion& q, const Vector3& s)
+		static constexpr Matrix4x4 TRS(const Vector3& position, const Quaternion& rotation, const Vector3& scale)
 		{
 			Matrix4x4 result;
-			result.SetTRS(pos, q, s);
+			result.SetTRS(position, rotation, scale);
 			return result;
 		}
 
@@ -711,50 +738,47 @@ namespace agm
 
 		Quaternion getRotationOnly() const
 		{
-			Quaternion q;
-			float trace = m00 + m11 + m22;
+			Quaternion result;
 
+			float trace = m00 + m11 + m22;
 			if (trace > 0.f)
 			{
-				float s = 0.5f / std::sqrt(trace + 1.f);
-				q.w = 0.25f / s;
-				q.x = (m21 - m12) * s;
-				q.y = (m02 - m20) * s;
-				q.z = (m10 - m01) * s;
+				float s = agm::Sqrt(trace + 1.f) * 2.f;
+				result.w = 0.25f * s;
+				result.x = (m21 - m12) / s;
+				result.y = (m02 - m20) / s;
+				result.z = (m10 - m01) / s;
+			}
+			else if ((m00 > m11) && (m00 > m22))
+			{
+				float s = agm::Sqrt(1.f + m00 - m11 - m22) * 2.f;
+				result.w = (m21 - m12) / s;
+				result.x = 0.25f * s;
+				result.y = (m01 + m10) / s;
+				result.z = (m02 + m20) / s;
+			}
+			else if (m11 > m22)
+			{
+				float s = agm::Sqrt(1.f + m11 - m00 - m22) * 2.f;
+				result.w = (m02 - m20) / s;
+				result.x = (m01 + m10) / s;
+				result.y = 0.25f * s;
+				result.z = (m12 + m21) / s;
 			}
 			else
 			{
-				if (m00 > m11 && m00 > m22)
-				{
-					float s = 2.f * std::sqrt(1.f + m00 - m11 - m22);
-					q.w = (m21 - m12) / s;
-					q.x = 0.25f * s;
-					q.y = (m01 + m10) / s;
-					q.z = (m02 + m20) / s;
-				}
-				else if (m11 > m22)
-				{
-					float s = 2.f * std::sqrt(1.f + m11 - m00 - m22);
-					q.w = (m02 - m20) / s;
-					q.x = (m01 + m10) / s;
-					q.y = 0.25f * s;
-					q.z = (m12 + m21) / s;
-				}
-				else
-				{
-					float s = 2.f * std::sqrt(1.f + m22 - m00 - m11);
-					q.w = (m10 - m01) / s;
-					q.x = (m02 + m20) / s;
-					q.y = (m12 + m21) / s;
-					q.z = 0.25f * s;
-				}
+				float s = agm::Sqrt(1.f + m22 - m00 - m11) * 2.f;
+				result.w = (m10 - m01) / s;
+				result.x = (m02 + m20) / s;
+				result.y = (m12 + m21) / s;
+				result.z = 0.25f * s;
 			}
 
-			return q.GetNormalized();
+			return result.GetNormalized();
 		}
 	};
 
-	inline const Matrix4x4 Matrix4x4::ZERO = Matrix4x4();
-	inline const Matrix4x4 Matrix4x4::IDENTITY = Matrix4x4(Vector4(1.f, 0.f, 0.f, 0.f), Vector4(0.f, 1.f, 0.f, 0.f), Vector4(0.f, 0.f, 1.f, 0.f), Vector4(0.f, 0.f, 0.f, 1.f));
+	inline const Matrix4x4 Matrix4x4::ZERO = Matrix4x4(Vector4(0, 0, 0, 0), Vector4(0, 0, 0, 0), Vector4(0, 0, 0, 0), Vector4(0, 0, 0, 0));
+	inline const Matrix4x4 Matrix4x4::IDENTITY = Matrix4x4(Vector4(1, 0, 0, 0), Vector4(0, 1, 0, 0), Vector4(0, 0, 1, 0), Vector4(0, 0, 0, 1));
 }
 
