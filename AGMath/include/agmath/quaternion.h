@@ -141,16 +141,7 @@ namespace agm
 
 		constexpr Quaternion& operator*=(const Quaternion& other)
 		{
-			float newX = w * other.x + x * other.w + y * other.z - z * other.y;
-			float newY = w * other.y - x * other.z + y * other.w + z * other.x;
-			float newZ = w * other.z + x * other.y - y * other.x + z * other.w;
-			float newW = w * other.w - x * other.x - y * other.y - z * other.z;
-
-			x = newX;
-			y = newY;
-			z = newZ;
-			w = newW;
-
+			*this = *this * other;
 			return *this;
 		}
 
@@ -164,11 +155,16 @@ namespace agm
 			return !(*this == other);
 		}
 
+		friend constexpr Quaternion operator*(float scalar, const Quaternion& q)
+		{
+			return q * scalar;
+		}
+
 	public:
 
 		float Length() const
 		{
-			return std::sqrt(x * x + y * y + z * z + w * w);
+			return agm::Sqrt(x * x + y * y + z * z + w * w);
 		}
 
 		constexpr float LengthSquared() const
@@ -176,25 +172,25 @@ namespace agm
 			return x * x + y * y + z * z + w * w;
 		}
 
-		void Normalize(float tolerance = agm::EPSILON)
+		void Normalize(float tolerance = agm::EPSILON_SQ_LENGTH)
 		{
 			*this = GetNormalized(tolerance);
 		}
 
-		Quaternion GetNormalized(float tolerance = agm::EPSILON) const
+		Quaternion GetNormalized(float tolerance = agm::EPSILON_SQ_LENGTH) const
 		{
-			float lengthSq = LengthSquared();
-			if (lengthSq > tolerance)
+			float lenSq = LengthSquared();
+			if (lenSq > tolerance)
 			{
-				return *this * agm::InvSqrt(lengthSq);
+				return *this * agm::InvSqrt(lenSq);
 			}
 			else
 			{
-				return Quaternion::IDENTITY;
+				return IDENTITY;
 			}
 		}
 
-		constexpr bool IsNormalized(float threshold = agm::QUATERNION_NORMALIZED_THRESHOLD) const
+		bool IsNormalized(float threshold = agm::QUATERNION_NORMALIZED_THRESHOLD) const
 		{
 			return agm::Abs(1.f - LengthSquared()) < threshold;
 		}
@@ -202,29 +198,29 @@ namespace agm
 		Vector3 ToEulerAngles() const
 		{
 			Vector3 euler;
-
 			float sinPitch = 2.f * (w * x - y * z);
-			if (sinPitch >= 1.f)
+
+			if (sinPitch >= 1.f - agm::EPSILON_DOT_ONE)
 			{
 				euler.x = agm::HALF_PI;
 			}
-			else if (sinPitch <= -1.f)
+			else if (sinPitch <= -1.f + agm::EPSILON_DOT_ONE)
 			{
 				euler.x = -agm::HALF_PI;
 			}
 			else
 			{
-				euler.x = std::asin(sinPitch);
+				euler.x = agm::Asin(sinPitch);
 			}
 
-			if (agm::Abs(sinPitch) < 0.99999f)
+			if (agm::Abs(sinPitch) < 1.f - agm::EPSILON_DOT_ONE)
 			{
-				euler.y = std::atan2(2.f * (w * y + x * z), 1.f - 2.f * (x * x + y * y));
-				euler.z = std::atan2(2.f * (w * z + x * y), 1.f - 2.f * (x * x + z * z));
+				euler.y = agm::Atan2(2.f * (w * y + x * z), 1.f - 2.f * (x * x + y * y));
+				euler.z = agm::Atan2(2.f * (w * z + x * y), 1.f - 2.f * (x * x + z * z));
 			}
 			else
 			{
-				euler.y = std::atan2(2.f * y * w - 2.f * x * z, 1.f - 2.f * y * y - 2.f * z * z);
+				euler.y = agm::Atan2(2.f * (y * w + x * z), 1.f - 2.f * (y * y + z * z));
 				euler.z = 0.f;
 			}
 
@@ -236,15 +232,10 @@ namespace agm
 			return euler;
 		}
 
-		void FromEulerAngles(const Vector3& euler)
-		{
-			*this = Euler(euler.x, euler.y, euler.z);
-		}
-
 		Vector3 GetRotationAxis() const
 		{
 			float sinSqHalfAngle = 1.f - w * w;
-			if (sinSqHalfAngle <= 0.f)
+			if (sinSqHalfAngle <= agm::EPSILON_SQ_LENGTH)
 			{
 				return Vector3::FORWARD;
 			}
@@ -256,23 +247,22 @@ namespace agm
 		void ToAngleAxis(float& outAngle, Vector3& outAxis) const
 		{
 			float clampedW = agm::Clamp(w, -1.f, 1.f);
-			outAngle = 2.f * std::acos(clampedW) * agm::RAD2DEG;
+			outAngle = 2.f * agm::Acos(clampedW) * agm::RAD2DEG;
 			outAxis = GetRotationAxis();
 		}
 
 		constexpr Vector3 RotateVector3(const Vector3& v) const
 		{
-			Vector3 qv(x, y, z);
-			Vector3 t = Vector3::Cross(qv, v) * 2.f;
-			return v + (t * w) + Vector3::Cross(qv, t);
+			Vector3 quatVec(x, y, z);
+			Vector3 temp = Vector3::Cross(quatVec, v) * 2.f;
+			return v + (temp * w) + Vector3::Cross(quatVec, temp);
 		}
 
 		constexpr Vector3 UnrotateVector3(const Vector3& v) const
 		{
-			Vector3 qv(-x, -y, -z);
-			float qw = w;
-			Vector3 t = Vector3::Cross(qv, v) * 2.f;
-			return v + (t * qw) + Vector3::Cross(qv, t);
+			Vector3 conjVec(-x, -y, -z);
+			Vector3 temp = Vector3::Cross(conjVec, v) * 2.f;
+			return v + (temp * w) + Vector3::Cross(conjVec, temp);
 		}
 
 		constexpr Vector3 GetAxisX() const
@@ -288,6 +278,11 @@ namespace agm
 		constexpr Vector3 GetAxisZ() const
 		{
 			return RotateVector3(Vector3::FORWARD);
+		}
+
+		void FromEulerAngles(const Vector3& euler)
+		{
+			*this = Euler(euler.x, euler.y, euler.z);
 		}
 
 		void SetFromToRotation(const Vector3& fromDirection, const Vector3& toDirection)
@@ -308,23 +303,22 @@ namespace agm
 			this->w = w;
 		}
 
-		constexpr bool IsSameRotation(const Quaternion& other, float tolerance = agm::EPSILON) const
+		constexpr bool IsSameRotation(const Quaternion& other, float tolerance = agm::EPSILON_DOT_ONE) const
 		{
 			return agm::Abs(agm::Abs(Dot(*this, other)) - 1.f) < tolerance;
 		}
 
 		constexpr bool Equals(const Quaternion& other, float tolerance = agm::EPSILON) const
 		{
-			return
-				agm::IsNearlyEqual(x, other.x, tolerance) &&
-				agm::IsNearlyEqual(y, other.y, tolerance) &&
-				agm::IsNearlyEqual(z, other.z, tolerance) &&
-				agm::IsNearlyEqual(w, other.w, tolerance);
+			return agm::IsNearlyEqual(x, other.x, tolerance) &&
+				   agm::IsNearlyEqual(y, other.y, tolerance) &&
+				   agm::IsNearlyEqual(z, other.z, tolerance) &&
+				   agm::IsNearlyEqual(w, other.w, tolerance);
 		}
 
 		std::string ToString() const
 		{
-			return std::format("({:.5f}, {:.5f}, {:.5f}, {:.5f})", x, y, z, w);
+			return std::format("({:.3f}, {:.3f}, {:.3f}, {:.3f})", x, y, z, w);
 		}
 
 	public:
@@ -332,21 +326,20 @@ namespace agm
 		static float Angle(const Quaternion& a, const Quaternion& b)
 		{
 			float cosHalfAngle = agm::Abs(Dot(a.GetNormalized(), b.GetNormalized()));
-			float clampedCosHalfAngle = agm::Clamp(cosHalfAngle, -1.f, 1.f);
-			return std::acos(clampedCosHalfAngle) * 2.f * agm::RAD2DEG;
+			return agm::Acos(agm::Clamp(cosHalfAngle, -1.f, 1.f)) * 2.f * agm::RAD2DEG;
 		}
 
-		static Quaternion AngleAxis(float angle, const Vector3& axis)
+		static Quaternion AngleAxis(float angleDeg, const Vector3& axis)
 		{
-			if (axis.IsNearlyZero())
+			if (axis.IsNearlyZero(agm::EPSILON_SQ_LENGTH))
 			{
 				return IDENTITY;
 			}
 
 			Vector3 normAxis = axis.GetNormalized();
-			float halfAngleRad = angle * agm::DEG2RAD * 0.5f;
-			float s = std::sin(halfAngleRad);
-			float c = std::cos(halfAngleRad);
+			float halfAngleRad = angleDeg * agm::DEG2RAD * 0.5f;
+			float s = agm::Sin(halfAngleRad);
+			float c = agm::Cos(halfAngleRad);
 
 			return Quaternion(normAxis.x * s, normAxis.y * s, normAxis.z * s, c);
 		}
@@ -376,40 +369,36 @@ namespace agm
 
 		static Quaternion FromToRotation(const Vector3& fromDirection, const Vector3& toDirection)
 		{
-			Vector3 fn = fromDirection.GetNormalized();
-			Vector3 tn = toDirection.GetNormalized();
-			float dot = Vector3::Dot(fn, tn);
+			Vector3 normFrom = fromDirection.GetNormalized();
+			Vector3 normTo = toDirection.GetNormalized();
 
-			if (dot >= 1.f - agm::EPSILON)
+			float d = Vector3::Dot(normFrom, normTo);
+			if (d >= 1.f - agm::EPSILON_DOT_ONE)
 			{
-				return Quaternion::IDENTITY;
+				return IDENTITY;
 			}
-			else if (dot <= -1.f + agm::EPSILON)
+			if (d <= -1.f + agm::EPSILON_DOT_ONE)
 			{
-				Vector3 axis = Vector3::Cross(Vector3::RIGHT, fn);
-				if (axis.IsNearlyZero(agm::EPSILON_SQUARED))
+				Vector3 axis = Vector3::FindOrthogonal(normFrom);
+				if (axis.IsNearlyZero(agm::EPSILON_SQ_LENGTH))
 				{
-					axis = Vector3::Cross(Vector3::UP, fn);
+					return AngleAxis(180.f, Vector3::UP);
 				}
 
 				return AngleAxis(180.f, axis);
 			}
 
-			float sSqrt = agm::Sqrt((1.f + dot) * 2.f);
-			float invS = 1.f / sSqrt;
-			Vector3 c = Vector3::Cross(fn, tn);
-
-			return Quaternion(c.x * invS, c.y * invS, c.z * invS, sSqrt * 0.5f);
+			Vector3 cross = Vector3::Cross(normFrom, normTo);
+			return Quaternion(cross.x, cross.y, cross.z, 1.f + d).GetNormalized();
 		}
 
 		static Quaternion Inverse(const Quaternion& q)
 		{
 			float lenSq = q.LengthSquared();
-			if (agm::IsNearlyZero(lenSq, agm::EPSILON_SQUARED))
+			if (lenSq <= agm::EPSILON_SQ_LENGTH)
 			{
-				return Quaternion::IDENTITY;
+				return IDENTITY;
 			}
-
 			if (agm::Abs(lenSq - 1.f) < agm::QUATERNION_NORMALIZED_THRESHOLD)
 			{
 				return Conjugate(q);
@@ -420,147 +409,158 @@ namespace agm
 
 		static Quaternion Lerp(const Quaternion& a, const Quaternion& b, float t)
 		{
-			float clampedT = agm::Clamp01(t);
+			t = agm::Clamp01(t);
+
 			Quaternion result;
 
 			if (Dot(a, b) >= 0.f)
 			{
-				result = a * (1.f - clampedT) + b * clampedT;
+				result = a * (1.f - t) + b * t;
 			}
 			else
 			{
-				result = a * (1.f - clampedT) - b * clampedT;
+				result = a * (1.f - t) - (b * t);
 			}
 
-			return result.GetNormalized();
+			return result.GetNormalized(agm::EPSILON_SQ_LENGTH);
 		}
 
-		static Quaternion LookRotation(const Vector3& forward, const Vector3& upwards = Vector3::UP)
+		static Quaternion LookRotation(const Vector3& forward, const Vector3& up = Vector3::UP)
 		{
-			if (forward.IsNearlyZero(agm::EPSILON_SQUARED))
+			if (forward.IsNearlyZero(agm::EPSILON_SQ_LENGTH))
 			{
 				return IDENTITY;
 			}
 
 			Vector3 f = forward.GetNormalized();
-			Vector3 r = Vector3::Cross(upwards, f).GetNormalized(agm::EPSILON_SQUARED);
-
-			if (r.IsNearlyZero(agm::EPSILON_SQUARED))
+			Vector3 r = Vector3::Cross(up, f);
+			if (r.IsNearlyZero(agm::EPSILON_SQ_LENGTH))
 			{
-				Vector3 fallbackUp = (agm::Abs(f.y) < 0.99999f) ? Vector3::UP : Vector3::FORWARD;
-				r = Vector3::Cross(fallbackUp, f).GetNormalized(agm::EPSILON_SQUARED);
-				if (r.IsNearlyZero())
+				if (agm::Abs(f.y) > 1.f - agm::EPSILON_DOT_ONE)
 				{
-					fallbackUp = Vector3::RIGHT;
-					r = Vector3::Cross(fallbackUp, f).GetNormalized();
-					if (r.IsNearlyZero(agm::EPSILON_SQUARED))
+					r = Vector3::Cross(Vector3::FORWARD, f);
+				}
+				else
+				{
+					r = Vector3::Cross(Vector3::UP, f);
+				}
+
+				if (r.IsNearlyZero(agm::EPSILON_SQ_LENGTH))
+				{
+					if (agm::Abs(f.x) < 0.9f)
 					{
-						return Quaternion::IDENTITY;
+						r = Vector3::RIGHT;
+					}
+					else
+					{
+						r = Vector3::UP;
+					}
+					r = Vector3::Cross(r, f);
+					if (r.IsNearlyZero(agm::EPSILON_SQ_LENGTH))
+					{
+						return IDENTITY;
 					}
 				}
 			}
-
-			Vector3 up = Vector3::Cross(f, r);
+			r.Normalize();
+			Vector3 u = Vector3::Cross(f, r);
 
 			float m00 = r.x;
-			float m01 = up.x;
+			float m01 = u.x;
 			float m02 = f.x;
+
 			float m10 = r.y;
-			float m11 = up.y;
+			float m11 = u.y;
 			float m12 = f.y;
+
 			float m20 = r.z;
-			float m21 = up.z;
+			float m21 = u.z;
 			float m22 = f.z;
 
 			float trace = m00 + m11 + m22;
-			Quaternion q;
-
+			Quaternion result;
 			if (trace > 0.f)
 			{
 				float s = agm::Sqrt(trace + 1.f) * 2.f;
-				q.w = 0.25f * s;
-				q.x = (m21 - m12) / s;
-				q.y = (m02 - m20) / s;
-				q.z = (m10 - m01) / s;
+				result.w = 0.25f * s;
+				result.x = (m21 - m12) / s;
+				result.y = (m02 - m20) / s;
+				result.z = (m10 - m01) / s;
 			}
 			else if ((m00 > m11) && (m00 > m22))
 			{
 				float s = agm::Sqrt(1.f + m00 - m11 - m22) * 2.f;
-				q.w = (m21 - m12) / s;
-				q.x = 0.25f * s;
-				q.y = (m01 + m10) / s;
-				q.z = (m02 + m20) / s;
+				result.w = (m21 - m12) / s;
+				result.x = 0.25f * s;
+				result.y = (m01 + m10) / s;
+				result.z = (m02 + m20) / s;
 			}
 			else if (m11 > m22)
 			{
 				float s = agm::Sqrt(1.f + m11 - m00 - m22) * 2.f;
-				q.w = (m02 - m20) / s;
-				q.x = (m01 + m10) / s;
-				q.y = 0.25f * s;
-				q.z = (m12 + m21) / s;
+				result.w = (m02 - m20) / s;
+				result.x = (m01 + m10) / s;
+				result.y = 0.25f * s;
+				result.z = (m12 + m21) / s;
 			}
 			else
 			{
 				float s = agm::Sqrt(1.f + m22 - m00 - m11) * 2.f;
-				q.w = (m10 - m01) / s;
-				q.x = (m02 + m20) / s;
-				q.y = (m12 + m21) / s;
-				q.z = 0.25f * s;
+				result.w = (m10 - m01) / s;
+				result.x = (m02 + m20) / s;
+				result.y = (m12 + m21) / s;
+				result.z = 0.25f * s;
 			}
 
-			return q.GetNormalized();
+			return result.GetNormalized();
 		}
 
-		static Quaternion RotateTowards(const Quaternion& from, const Quaternion& to, float maxAngleDelta)
+		static Quaternion RotateTowards(const Quaternion& from, const Quaternion& to, float maxDegreesDelta)
 		{
-			if (maxAngleDelta <= 0.f)
+			if (maxDegreesDelta <= 0.f)
 			{
 				return from;
 			}
 
 			float angle = Angle(from, to);
-			if (angle <= maxAngleDelta)
+			if (angle <= maxDegreesDelta || angle < agm::EPSILON)
 			{
 				return to;
 			}
 
-			float t = maxAngleDelta / angle;
-			return Slerp(from, to, t);
+			return Slerp(from, to, maxDegreesDelta / angle);
 		}
 
 		static Quaternion Slerp(const Quaternion& a, const Quaternion& b, float t)
 		{
-			float clampedT = agm::Clamp01(t);
+			t = agm::Clamp01(t);
 
-			Quaternion an = a.GetNormalized();
-			Quaternion bn = b.GetNormalized();
+			Quaternion normA = a.GetNormalized();
+			Quaternion normB = b.GetNormalized();
+			Quaternion effectiveB = normB;
 
-			float cosHalfTheta = Dot(an, bn);
-			Quaternion shortestB = bn;
-
+			float cosHalfTheta = Dot(normA, normB);
 			if (cosHalfTheta < 0.f)
 			{
-				shortestB = -bn;
+				effectiveB = -normB;
 				cosHalfTheta = -cosHalfTheta;
 			}
-
-			if (cosHalfTheta > 1.f - agm::EPSILON)
+			if (cosHalfTheta > 1.f - agm::EPSILON_DOT_ONE)
 			{
-				return Lerp(an, shortestB, clampedT);
+				return Lerp(normA, effectiveB, t);
 			}
 
-			float halfTheta = std::acos(cosHalfTheta);
-			float sinHalfTheta = std::sin(halfTheta);
-
+			float halfTheta = agm::Acos(cosHalfTheta);
+			float sinHalfTheta = agm::Sin(halfTheta);
 			if (agm::IsNearlyZero(sinHalfTheta))
 			{
-				return Lerp(an, shortestB, clampedT);
+				return Lerp(normA, effectiveB, t);
 			}
 
-			float s0 = std::sin((1.f - clampedT) * halfTheta) / sinHalfTheta;
-			float s1 = std::sin(clampedT * halfTheta) / sinHalfTheta;
+			float s0 = agm::Sin((1.f - t) * halfTheta) / sinHalfTheta;
+			float s1 = agm::Sin(t * halfTheta) / sinHalfTheta;
+			Quaternion result = (normA * s0) + (effectiveB * s1);
 
-			Quaternion result = (an * s0) + (shortestB * s1);
 			return result.GetNormalized();
 		}
 	};
