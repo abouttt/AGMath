@@ -1,4 +1,4 @@
-# AGM - About Game Math
+# AGM - Abouttt Game Math
 
 AGM (About Game Math) is a C++20 math library primarily designed for game development. It provides core functionalities like Vectors, Quaternions, and Matrices, drawing inspiration from established game engines like **Unreal Engine** and **Unity Engine**. This library is developed and primarily tested with MSVC (Microsoft Visual C++).
 
